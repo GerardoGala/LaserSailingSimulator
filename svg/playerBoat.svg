@@ -1,0 +1,20 @@
+    <svg id="playerBoat" xmlns="http://www.w3.org/2000/svg" viewBox="-50 -50 100 200"
+        width="80" height="320" style="position:absolute; left:50%; transform:translateX(-50%); top:3100px; overflow:visible; z-index:9999;" data-boat-x="0" data-boat-y="3100">
+
+      <g id="boatGroup">
+        <polygon id="hull" points="0,0 -25,100 25,100" fill="yellow" stroke="#111" stroke-width="3"/>
+        <g id="tillerGroup" transform="translate(0,100)">
+          <rect x="-2" y="0" width="4" height="30" fill="#2e8b57" rx="2"/>
+        </g>
+        <g id="boomPivot">
+          <!-- Boom (now extending DOWN from bow) -->
+          <rect x="-2" y="0" width="4" height="95" fill="#dc143c"/>
+          
+          <!-- Port tack powered: belly to STARBOARD (right) -->
+          <path id="sailPortTack" 
+                d="M -2,0 L -2,80 Q 40,60 0,0 Z" 
+                fill="white" opacity="0.85" stroke="#333" stroke-width="0.5"/>
+         
+          </g>
+      </g>
+    </svg>

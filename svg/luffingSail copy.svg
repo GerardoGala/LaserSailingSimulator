@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-50 -50 100 200">
+  <g id="boatGroup">
+    <polygon id="hull" points="0,0 -25,100 25,100" fill="yellow" stroke="#111" stroke-width="3"/>
+
+    <g id="tillerGroup" transform="translate(0,100)">
+      <rect x="-1" y="0" width="2" height="25" fill="#2e8b57"/>
+    </g>
+
+    <g id="boomGroup" transform="translate(0,100)">
+      <rect x="-2" y="-100" width="4" height="95" fill="#dc143c"/>
+      
+      <path id="sailLuffing" 
+      d="M -2,-100 
+         L -2,-20 
+         Q 20,-40  -20,-70 
+         Q 25,-50  0,-100 
+         Z" fill="white" opacity="0.85"/>
+    </g>
+  </g>
+    </g>
+  </g>
+</svg>
