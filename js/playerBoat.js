@@ -48,9 +48,11 @@ export const playerBoat = {
     this.tillerGroup = this.el.querySelector('#tillerGroup');
     this.boomPivot = this.el.querySelector('#boomPivot');
 
-    const margin = 100; 
-    const startX = window.innerWidth - margin;
-    const startY = window.innerHeight - margin;
+    const margin = 100;
+    const viewWidth = window.innerWidth;
+    const viewHeight = window.innerHeight; 
+    const startX = viewWidth - margin;
+    const startY = viewHeight - margin;
 
     this.x = startX;
     this.y = startY;
@@ -75,6 +77,12 @@ export const playerBoat = {
   // #region UPDATE LOOP
   update() {
     if (!this.el) return;
+
+    const gameScreen = document.getElementById('gameScreen');
+const rect = gameScreen.getBoundingClientRect();
+const viewWidth  = rect.width;
+const viewHeight = rect.height;
+
 
     // --- 1. TILLER & INPUT ---
     const tillerUI = document.getElementById('tillerControl');
@@ -269,8 +277,8 @@ if (!this.tackCommitment && !inNoGoZone && !isLuffing) {
     // --- 5. SCREEN WRAPPING ---
     const step = 0.2; 
     const threshold = 230; 
-    const horizontalCenter = window.innerWidth / 2;
-    const verticalCenter = window.innerHeight / 2;
+const horizontalCenter = viewWidth / 2;
+const verticalCenter   = viewHeight / 2;
 
     if (this.y < (verticalCenter - threshold)) { 
       this.y = verticalCenter + threshold;

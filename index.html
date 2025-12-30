@@ -1,508 +1,489 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Laser Dinghy Sailing Simulator</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VSCodium Grid Demo</title>
   <style>
-    /* CORE LAYOUT & RESET */
-    html, body {
-      width: 100%; height: 100%;
-      background: #2c3e50; /* Changed from sky blue to Midnight Blue */
-      font-family: system-ui, -apple-system, sans-serif;
-      margin: 0; padding: 0;
-      overflow: hidden;
-      touch-action: manipulation;
-    }
-
-    #gameScreen {
-      height: 100vh; width: 100vw;
-      position: relative;
-      
-      /* THIS IS THE MAGIC: A square-ish gradient that creates the 'Arena' */
-      /* It keeps the center Sky Blue and the outside Midnight Blue */
-      background: radial-gradient(
-        chartreuse, /* Debugging tip: use a bright color here if you want to see the shape */
-        #87CEEB 0%,     /* Center is Sky Blue */
-        #87CEEB 460px,  /* Stays Sky Blue until the 230px threshold (460px total width) */
-        #2c3e50 461px,  /* Hard cut to Midnight Blue right at the boundary */
-        #2c3e50 100%    /* The rest of the screen is Midnight Blue */
-      );
-      
-      /* If you want a perfectly sharp square instead of a circle, we use this: */
-      background-image: 
-        linear-gradient(to right, #2c3e50 calc(50% - 230px), transparent calc(50% - 230px), transparent calc(50% + 230px), #2c3e50 calc(50% + 230px)),
-        linear-gradient(to bottom, #2c3e50 calc(50% - 230px), #87CEEB calc(50% - 230px), #87CEEB calc(50% + 230px), #2c3e50 calc(50% + 230px));
-    }
-
-    /* SHARED BUTTON STYLE (Static - Rule #1 compliant) */
-    .btn-action {
-      background-color: #27ae60 !important;
-      color: white !important;
-      border: 2px solid #ffffff !important;
-      border-radius: 8px !important;
-      font-weight: bold;
-      cursor: pointer;
-      text-align: center;
-      user-select: none;
-      text-transform: uppercase;
-    }
-    .btn-action:hover { background-color: #2ecc71 !important; }
-
-    /* WELCOME SCREEN & MODAL */
-    .welcomeScreen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background-color: #1a252f;
-      z-index: 20000;
-      display: flex !important;
-      justify-content: center;
-      align-items: center;
-    }
-    .welcomeScreen.hidden { display: none !important; }
-
-    .modal-content {
-      background: #2c3e50;
-      color: white;
-      padding: 30px;
-      border-radius: 15px;
-      border: 2px solid #ffffff;
-      width: 90%;
-      max-width: 500px;
-      max-height: 90vh;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    /* UI POSITIONING */
-    #okButton { width: 100%; padding: 15px; font-size: 18px; margin-top: 20px; position: relative !important; }
-    
-    #startButton {
-      position: fixed; left: 50%; top: 80px;
-      transform: translateX(-50%);
-      padding: 18px 50px;
-      font-size: 24px;
-      letter-spacing: 4px;
-      z-index: 10000;
-    }
-
-    #raceTimer {
-      background: rgba(0, 0, 0, 0.8);
-      border: 2px solid white;
-      border-radius: 12px;
-      color: #ffffff;
-      top: 80px; left: 50%;
-      transform: translateX(-50%);
-      font: bold 24px system-ui;
-      padding: 18px 50px;
-      position: fixed;
-      z-index: 1000;
-    }
-
-    #rcFlagsLeft { position: fixed; left: 10px; top: 80px; z-index: 1001; }
-    #rcFlagsRight { position: fixed; right: 10px; top: 80px; z-index: 1001; }
-
-    /* UTILITIES & BOATS */
-    .fixed-ui { pointer-events: auto !important; position: fixed; z-index: 9999; }
-    .hide { display: none !important; }
-
-    #playerBoat, #aiBoat { height: 200px; position: absolute; width: 100px; z-index: 100; }
-    #playerBoat { fill: yellow; }
-    #aiBoat { fill: #00ff00; stroke: #006400; }
-
-    /* set the visibility on Page_load*/
-    #startFinishLine { display: block; }
-    #sailPortTack { display: block; } 
-    #sailStarboardTack { display: none; } 
-    #sailLuffing { display: none; }
-    #mar1 { display: none; }
-    #mark2 { display: none; }
-    #mark3 { display: none; }
-
-    /* Rule 31: Change circle color based on the parent SVG's data-hit attribute */
-    svg[data-hit="true"] circle {
-        fill: red !important;
-    }
-
-    svg[data-hit="false"] circle {
-        fill: yellow;
-    }
-
+    /* VSCODIUM DARK THEME COLORS */
     :root {
-    /* Change this value once to update all buttons */
-    --control-size: 45px;
-  }
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #252526;
+      --bg-tertiary: #2d2d30;
+      --text-primary: #d4d4d4;
+      --text-secondary: #858585;
+      --text-accent: #569cd6;
+      --border: #3e3e42;
+      --button-bg: #0e639c;
+      --button-hover: #1177bb;
+    }
 
-:root {
-    /* As requested: the value of 55 is saved here */
-    --btn-size: 55px; 
-  }
+    /* RESET & FULLSCREEN */
+    * {
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+    }
 
-  #tillerControl {
-    display: flex;
-    /* Keeps the group at the bottom-right, but buttons flow intuitively */
-    flex-direction: row-reverse; 
-    align-items: center;
-    gap: 8px;
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    z-index: 9999;
-  }
+    /* HIDDEN BY DEFAULT */
+    .main-container {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
 
-  .tiller-btn {
-    pointer-events: auto;
-    width: var(--btn-size);
-    height: var(--btn-size);
-    color: white;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    /* This ensures the full words fit in the 55px box */
-    font-size: 0.7rem; 
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2px;
-  }
+    /* MAIN 70/30 TWO-COLUMN GRID */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 70% 30%;
+      width: 100%;
+      height: 100%;
+      gap: 2px;
+      background: var(--border);
+    }
+
+    /* LEFT COLUMN - NESTED GRID (70%) */
+    .left-panel {
+      display: grid;
+      grid-template-rows: 1fr;  /* Only one row that takes all available height */
+      background: var(--bg-primary);
+    }
+
+    .left-content {
+      background: var(--bg-secondary);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      color: var(--text-secondary);
+    }
+
+
+    .control-button {
+      background: var(--button-bg);
+      color: white;
+
+      border: none;              /* NO borders */
+      border-radius: 4px;        /* rx = 4 */
+
+      font-size: 14px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+
+      transition: background 0.2s;
+    }
+
+
+    .control-button:hover {
+      background: var(--button-hover);
+    }
+
+    #btnSheetPlus,
+    #btnSheetMinus {
+      background-color: #333;      /* dark gray */
+      font-size: 1rem;
+    }
+
+    #btnSheet15 {
+      background-color: #dc3545;   /* red */
+    }
+
+
+    /* RIGHT COLUMN - NESTED GRID (30%) */
+    .right-panel {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 60px 1fr 80px;
+      background: var(--bg-primary);
+      gap: 2px;
+    }
+
+    .right-header {
+      background: var(--bg-tertiary);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-accent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .right-content {
+      background: var(--bg-secondary);
+      padding: 20px;
+      overflow: auto;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .right-footer {
+      background: var(--bg-tertiary);
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 2px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .right-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      padding: 8px;
+    }
+
+    .right-3col .cell {
+      background: var(--bg-tertiary);
+      text-align: center;
+      padding: 12px;
+
+    }
+
+    .right-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      padding: 8px;
+    }
+
+    .right-4col .cell {
+      background: var(--bg-tertiary);
+      text-align: center;
+
+    }
+
+
+    .cell {
+      width: 100%;
+      height: 100%;
+    }
+
+    .cell > .control-button {
+      width: 100%;
+      height: 100%;
+    }
+
+
+
+
+   
+
+
 
   /* Right-side maneuvers (Turns the boat Right) */
-  #btnTack { background-color: #28a745; border: 2px solid white; }
+  #btnTack { background-color: #28a745;  }
   #btnPlus { background-color: #333; border: 1px solid #555; font-size: 1rem; }
 
   /* Left-side maneuvers (Turns the boat Left) */
   #btnMinus { background-color: #333; border: 1px solid #555; font-size: 1rem; }
-  #btnGybe { background-color: #dc3545; border: 2px solid white; }
+  #btnGybe { background-color: #dc3545; }
 
 
-  #sheetControl {
-    display: flex;
-    /* Keeps the group at the bottom-right, but buttons flow intuitively */
-    flex-direction: column; 
-    align-items: center;
-    gap: 8px;
-    position: fixed;
-    right: 20px;
-    bottom: 100px;
-    z-index: 9999;
-  }
-  #btnSheet90 { background-color: #28a745; border: 2px solid white; }
+  #btnSheet90 { background-color: #28a745; }
   #btnSheetPlus { background-color: #333; border: 1px solid #555; font-size: 1rem; }
   #btnSheetMinus { background-color: #333; border: 1px solid #555; font-size: 1rem; }
-  #btnSheet15 { background-color: #dc3545; border: 2px solid white; }
-  .btn-action {
-    width: 20%;
-    margin-top: 15px;
-    padding: 10px;
-    background: #28a745;
-    border: none;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-  }
+  #btnSheet15 { background-color: #dc3545; }
 
-  /* ---Welcome Dialog-------------------------------------"/
-  /* 1. Reset the outer container to fit content naturally */
-  .welcome-container {
-    position: fixed;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    max-width: 800px;
-    height: 90vh;             /* Fixed height to keep OK button visible */
-    background: #1a1a1a;
-    border: 2px solid #333;
-    padding: 20px;
-    color: white;
-    z-index: 10000;
-    border-radius: 0 0 10px 10px;
-    display: flex;
-    flex-direction: column;   /* Vertical sandwich structure */
-  }
+    .hide { display: none !important; }
 
-  .scroll-area {
-    flex-grow: 1;
-    overflow-y: auto;        /* The ONLY vertical scrollbar */
-    margin: 10px 0;
-    padding-right: 10px;
-  }
-
-  /* 2. Modified Chapter Text - Remove fixed heights and inner scroll */
-  .chapter-text {
-    height: 0;                /* Managed by Anime.js */
-    opacity: 0;
-    overflow: hidden;         /* Prevent content from bleeding out while animating */
-    background: #111;
-    /* padding is managed by Anime.js */
-  }
-
-  /* 3. Ensure the image fits the width but expands the height naturally */
-  .course-map-img {
-    width: 50%;
-    height: auto;
-    display: block;
-    margin: 15px auto;
-    border: 1px solid #444;
-    border-radius: 4px;
-  }
-
-  /* Custom Scrollbar for the Scroll-Area only */
-  .scroll-area::-webkit-scrollbar {
-    width: 8px;
-  }
-  .scroll-area::-webkit-scrollbar-track {
-    background: #000;
-  }
-  .scroll-area::-webkit-scrollbar-thumb {
-    background: #28a745;
-    border-radius: 4px;
-  }
-  /* End of Welcome box */
-
-/* 1. Ensure the grid container forces 4 columns */
-.performance-grid {
-  display: grid !important;
-  grid-template-columns: 2fr 1fr 1fr 1fr !important; /* Explicit 4-column split */
-  width: 100%;
-  background-color: #333; /* Line color */
-  gap: 1px;               /* Cell spacing */
-  border: 1px solid #333;
-  margin: 10px 0;
-  box-sizing: border-box;
-}
-
-/* 2. Cell Styling */
-.performance-grid div {
-  background-color: #111; /* Cell background */
-  padding: 8px 4px;
-  font-size: 0.8rem;
-  color: #fff;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 35px;
-}
-
-/* 3. Header Styling */
-.performance-grid .grid-header {
-  background-color: #222;
-  color: #28a745; /* Laser Green */
-  font-weight: bold;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-}
-
-/* 4. First column alignment (The Titles) */
-.performance-grid div:nth-child(4n+1) {
-  justify-content: flex-start;
-  padding-left: 10px;
-  font-weight: bold;
-}
-
-/* 5. Highlight the Speed column (3rd in every row of 4) */
-.performance-grid div:nth-child(4n+3) {
-  color: #28a745;
-  font-weight: bold;
-}
-
-
-
-/* Layout for the Flags on the Left */
-#rcFlagStation {
-    position: fixed;
-    left: 100px;
-    top: 100px;
-    display: flex;
-    flex-direction: column; /* Stacks flags vertically */
-    gap: 20px;             /* Space between flags */
-    pointer-events: none;  /* Clicks pass through to water */
-}
-
-/* Ensure flags are visible when not 'hide' class */
-#rcFlagStation svg:not(.hide) {
-    display: block;
-}
-
-/* Centered Start Button and Timer */
-#raceControlsOverlay {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    width: 200px; /* This is a good width for a dashboard element */
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: stretch; /* Change from center to stretch so children fill the 200px */
-    gap: 10px;
-    z-index: 1001;
-}
-
-/* Make the button look like a real racing dashboard control */
-#startButton {
-    width: 100%;
-    padding: 12px;
-    font-size: 18px;
-    font-weight: bold;
-    text-transform: uppercase;
-    cursor: pointer;
-    border: 2px solid #222;
-    border-radius: 8px;
-    background-color: #28a745; /* Racing Green */
-    color: white;
-}
-
-/* Make the Timer look consistent with the button */
-#raceTimer {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid #444;
-    border-radius: 8px;
-    padding: 10px 0;
-}
-
-#raceTimerDisplay {
-    color: #00ff00; /* Digital Watch Green */
-    font-family: 'Courier New', monospace;
-    font-size: 24px;
-    font-weight: bold;
-    text-align: center;
-    width: 100%;
-}
-
+    /* RESPONSIVE - STACK ON MOBILE */
+    @media (max-width: 768px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        height: 100vh;
+      }
+      
+      .left-panel, .right-panel {
+        grid-template-rows: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
 
 
+  <!-- WELCOME DIALOG -->
+  <style>
+  .help-container {
+    width: 90vw;
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  }
 
-  <!-- WELCOME MODAL -->
-  <div id="welcomeScreen" class="welcome-container">
-    <h2 class="logbook-title">Welcome to the Laser Race Simulator</h2>
-    <div class="scroll-area">
-      <div class="chapter">
-        <input type="radio" name="chapters" id="ch1" checked>
-        <label for="ch1" class="chapter-label">01. THE RACE</label>
-        <div class="chapter-text">
+  .help-chapter {
+    width: 100%;   /* Forces every chapter to full container width */
+    border-bottom: 1px solid var(--border);
+  }
+
+  .help-chapter:last-child {
+    border-bottom: none;
+  }
+
+  .help-title {
+    background: var(--bg-tertiary);
+    color: var(--text-accent);
+    padding: 18px 24px;
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+    width: 100%;                      /* Stretch title fully */
+    min-width: 0;                     /* Allow flex shrinking if needed */
+  }
+
+  .help-title:hover {
+    background: #363637;
+  }
+
+  .help-title::after {
+    content: "+";
+    font-size: 28px;
+    color: var(--text-secondary);
+    transition: transform 0.3s ease;
+  }
+
+  .help-title.active::after {
+    content: "−";
+  }
+
+  .help-content {
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 24px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    line-height: 1.7;
+    transition: max-height 0.4s ease, padding 0.4s ease;
+  }
+
+  .help-content.open {
+    max-height: 2000px;
+    padding: 28px 24px;
+  }
+
+  .help-content p {
+    margin: 14px 0;
+  }
+
+  .help-content ul {
+    padding-left: 28px;
+    margin: 14px 0;
+  }
+
+  .help-content strong {
+    color: var(--text-accent);
+  }
+
+  .help-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+    margin: 20px 0;
+  }
+
+  .help-content th, .help-content td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .help-content th {
+    border-bottom: 2px solid white;
+  }
+
+  .help-content .performance-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin: 20px 0;
+    font-size: 0.95em;
+  }
+
+  .help-content .grid-header, .help-content .performance-grid > div {
+    background: var(--bg-tertiary);
+    padding: 12px 8px;
+    text-align: center;
+  }
+
+  .help-content .grid-header {
+    background: var(--bg-primary);
+    font-weight: bold;
+    color: var(--text-accent);
+  }
+
+  .video-link a {
+    color: var(--text-accent);
+    font-weight: bold;
+    text-decoration: underline;
+  }
+
+  .help-button {
+    width: 100%;
+    background: var(--button-bg);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .help-button:hover {
+    background: var(--button-hover);
+  }
+  </style>
+
+  <!-- WELCOME DIALOG - WITH SCROLLABLE HELP + FIXED OK BUTTON -->
+  <div class="welcome-overlay" id="welcomeOverlay">
+    <div style="position: absolute; inset: 0; background: rgba(30, 30, 30, 0.95); display: grid; grid-template-rows: 1fr auto; overflow: hidden; ">
+      
+    <!-- SCROLLABLE HELP SECTION -->
+    <div style="overflow-y: auto; padding: 20px; display: grid; place-items: center;">
+      <!-- 01. THE RACE -->
+      <div class="help-chapter">
+        <div class="help-title">01. The Race</div>
+        <div class="help-content">
           <p>1. 3-minute Start</p>
           <p>a. Flags at T-3.00, T-2.00, T-1.00, and T-0.00</p>
         </div>
       </div>
 
-      <div class="chapter">
-        <input type="radio" name="chapters" id="ch2">
-        <label for="ch2" class="chapter-label">02. THE RACE COURSE</label>
-        <div class="chapter-text">
+      <!-- 02. THE RACE COURSE -->
+      <div class="help-chapter">
+        <div class="help-title">02. The Race Course</div>
+        <div class="help-content">
           <p>1. Standard triangle race course:</p>
-          <img src="assets/course-map.jpg" alt="Laser Race Course Map" class="course-map-img">
-          <p>2. Round all marks to port. Finish between the RC boat and the pin.
-          </p>
+          <p><img src="assets/course-map.jpg" alt="Laser Race Course Map" style="width:100%; max-width:400px; border-radius:8px; margin:16px 0;"></p>
+          <p>2. Round all marks to port. Finish between the RC boat and the pin.</p>
         </div>
       </div>
 
-      <div class="chapter">
-        <input type="radio" name="chapters" id="ch3">
-        <label for="ch3" class="chapter-label">03. THE ENVIRONMENT</label>
-        <div class="chapter-text">
+      <!-- 03. THE ENVIRONMENT -->
+      <div class="help-chapter">
+        <div class="help-title">03. The Environment</div>
+        <div class="help-content">
           <p>The 2026 Laser Race is held at <strong>Mucuripe Beach, Fortaleza, Ceará, Brazil</strong>.</p>
           <p>Watch for the jangadas on the horizon and prepare for the Atlantic trade winds!</p>
           
-          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 15px 0;">
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 30px 0;">
           
           <p style="font-style: italic; font-size: 0.9em;">"The wind breathes." — Frank Bethwaite</p>
           
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 10px;">
+          <table>
             <thead>
-              <tr style="text-align: left; border-bottom: 2px solid white;">
-                <th style="padding: 8px;">Factor</th>
-                <th style="padding: 8px;">Pattern (Bethwaite Cycle)</th>
+              <tr>
+                <th>Factor</th>
+                <th>Pattern (Bethwaite Cycle)</th>
               </tr>
             </thead>
             <tbody>
-              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <td style="padding: 8px;"><strong>Micro-Puffs</strong></td>
-                <td style="padding: 8px;">6–12 second peaks; speed fluctuations of ±7%.</td>
-              </tr>
-              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <td style="padding: 8px;"><strong>Tactical Shifts</strong></td>
-                <td style="padding: 8px;">Oscillations of ±15° to 20° every 3–6 minutes.</td>
+              <tr>
+                <td><strong>Micro-Puffs</strong></td>
+                <td>6–12 second peaks; speed fluctuations of ±7%.</td>
               </tr>
               <tr>
-                <td style="padding: 8px;"><strong>Atlantic Gusts</strong></td>
-                <td style="padding: 8px;">Sudden power increases of up to 30% from base wind.</td>
+                <td><strong>Tactical Shifts</strong></td>
+                <td>Oscillations of ±15° to 20° every 3–6 minutes.</td>
+              </tr>
+              <tr>
+                <td><strong>Atlantic Gusts</strong></td>
+                <td>Sudden power increases of up to 30% from base wind.</td>
               </tr>
             </tbody>
           </table>
           
-          <p style="margin-top: 15px;">The wind condition will be announced at the start of the race.</p>
+          <p>The wind condition will be announced at the start of the race.</p>
         </div>
       </div>
 
-      <div class="chapter">
-        <input type="radio" name="chapters" id="ch4">
-        <label for="ch4" class="chapter-label">04. THE CONTROLS</label>
-        <div class="chapter-text">
+      <!-- 04. THE CONTROLS -->
+      <div class="help-chapter">
+        <div class="help-title">04. The Controls</div>
+        <div class="help-content">
           <p>Watch this guide to master <strong>Laser Sail Tuning</strong> for medium winds. These adjustments are critical for the 3-minute setup phase before your race begins.</p>
-          <div class="video-link" style="margin-bottom: 20px;">
-              <a href="http://www.youtube.com/watch?v=RjokxLehlaY" target="_blank">
-                  <strong>Video: Laser Sail Tuning & Adjusting Tips</strong>
-              </a>
+          
+          <div class="video-link" style="margin:20px 0;">
+            <a href="http://www.youtube.com/watch?v=RjokxLehlaY" target="_blank">
+              <strong>Video: Laser Sail Tuning & Adjusting Tips</strong>
+            </a>
           </div>
-          <div class="control-details">
-              <h3>Outhaul</h3>
-              <ul>
-                  <li><strong>Function:</strong> Controls the bottom edge and the depth (belly) of the sail.</li>
-                  <li><strong>Optimization:</strong> Leave roughly a "hand span" of space between the sail and the boom. This creates the ideal balance of drive and boat control.</li>
-              </ul>
-
-              <h3>Cunningham (Downhaul)</h3>
-              <ul>
-                  <li><strong>Function:</strong> Controls the tension on the front edge (luff) and the upper part of the sail.</li>
-                  <li><strong>Optimization:</strong> Pulling it tight flattens the top of the sail to "shed" power when you are overpowered. In lighter winds, use just enough tension to smooth out vertical creases.</li>
-              </ul>
-
-              <h3>Boom Vang (Kicker)</h3>
-              <ul>
-                  <li><strong>Function:</strong> Holds the boom down and bends the mast to flatten the mid-section of the sail.</li>
-                  <li><strong>Optimization:</strong> Essential for gusts. Proper tension allows you to ease the mainsheet without the boom rising, preventing the sail from accidentally powering up when you're trying to depower.</li>
-              </ul>
-          </div>
+          
+          <h3 style="color:var(--text-accent); margin-top:24px;">Outhaul</h3>
+          <ul>
+            <li><strong>Function:</strong> Controls the bottom edge and the depth (belly) of the sail.</li>
+            <li><strong>Optimization:</strong> Leave roughly a "hand span" of space between the sail and the boom. This creates the ideal balance of drive and boat control.</li>
+          </ul>
+          
+          <h3 style="color:var(--text-accent); margin-top:20px;">Cunningham (Downhaul)</h3>
+          <ul>
+            <li><strong>Function:</strong> Controls the tension on the front edge (luff) and the upper part of the sail.</li>
+            <li><strong>Optimization:</strong> Pulling it tight flattens the top of the sail to "shed" power when you are overpowered. In lighter winds, use just enough tension to smooth out vertical creases.</li>
+          </ul>
+          
+          <h3 style="color:var(--text-accent); margin-top:20px;">Boom Vang (Kicker)</h3>
+          <ul>
+            <li><strong>Function:</strong> Holds the boom down and bends the mast to flatten the mid-section of the sail.</li>
+            <li><strong>Optimization:</strong> Essential for gusts. Proper tension allows you to ease the mainsheet without the boom rising, preventing the sail from accidentally powering up when you're trying to depower.</li>
+          </ul>
         </div>
       </div>
 
-      <div class="chapter">
-        <input type="radio" name="chapters" id="ch5">
-        <label for="ch5" class="chapter-label">05. ILCA TARGET SPEEDS (10-12kts Wind)</label>
-        <div class="chapter-text">
+      <!-- 05. ILCA TARGET SPEEDS -->
+      <div class="help-chapter">
+        <div class="help-title">05. ILCA Target Speeds (10-12kts Wind)</div>
+        <div class="help-content">
           <div class="performance-grid">
             <div class="grid-header">Point of Sail</div>
             <div class="grid-header">Heading</div>
             <div class="grid-header">Speed</div>
             <div class="grid-header">Sheet</div>
-
+            
             <div>Close Hauled</div>
             <div>30°-45°</div>
             <div>4.8 kts</div>
             <div>0°-5°</div>
-
+            
             <div>Close Reach</div>
             <div>60°</div>
             <div>6.2 kts</div>
             <div>20°</div>
-
+            
             <div>Beam Reach</div>
             <div>90°</div>
             <div>8.5 kts</div>
             <div>45°</div>
-
+            
             <div>Broad Reach</div>
             <div>135°</div>
             <div>7.2 kts</div>
             <div>75°</div>
-
+            
             <div>Dead Run</div>
             <div>175°</div>
             <div>4.5 kts</div>
@@ -511,350 +492,410 @@
         </div>
       </div>
 
-      <div class="chapter">
-        <input type="radio" name="chapters" id="ch6">
-        <label for="ch6" class="chapter-label">06 THE PHYSICS OF LASER SAILING</label>
-        <div class="chapter-text">
-                  <p>To master the Laser, you must manipulate the sail's shape to balance <strong>Lift</strong> and <strong>Drag</strong>. The <strong>Outhaul</strong> is your primary tool for controlling the "lower gear" of the boat by adjusting the <strong>Camber</strong> (depth).</p>
-        
-        <div class="physics-specs">
-            <h3>The Mechanics of Camber</h3>
-            <ul class="physics-list">
-                <li>
-                    <strong>Loose Outhaul (Deep Camber):</strong> 
-                    Generates maximum power (Lift) for light winds or downwind. 
-                    <br><em>Penalty:</em> Increases <strong>Induced Drag</strong>. In heavy air, this causes excessive heeling (tilting) rather than forward motion.
-                </li>
-                <li>
-                    <strong>Tight Outhaul (Flat Camber):</strong> 
-                    Reduces drag and allows the boat to point higher upwind. 
-                    <br><em>Penalty:</em> In light air, a sail that is too flat will <strong>Stall</strong>, causing a total loss of drive.
-                </li>
-            </ul>
+      <!-- 06. THE PHYSICS OF LASER SAILING -->
+      <div class="help-chapter">
+        <div class="help-title">06. The Physics of Laser Sailing</div>
+        <div class="help-content">
+          <p>To master the Laser, you must manipulate the sail's shape to balance <strong>Lift</strong> and <strong>Drag</strong>. The <strong>Outhaul</strong> is your primary tool for controlling the "lower gear" of the boat by adjusting the <strong>Camber</strong> (depth).</p>
+          
+          <h3 style="color:var(--text-accent); margin:24px 0 16px;">The Mechanics of Camber</h3>
+          <ul>
+            <li>
+              <strong>Loose Outhaul (Deep Camber):</strong><br>
+              Generates maximum power (Lift) for light winds or downwind.<br>
+              <em>Penalty:</em> Increases <strong>Induced Drag</strong>. In heavy air, this causes excessive heeling (tilting) rather than forward motion.
+            </li>
+            <li style="margin-top:16px;">
+              <strong>Tight Outhaul (Flat Camber):</strong><br>
+              Reduces drag and allows the boat to point higher upwind.<br>
+              <em>Penalty:</em> In light air, a sail that is too flat will <strong>Stall</strong>, causing a total loss of drive.
+            </li>
+          </ul>
         </div>
+      </div>
+    </div>
+    <!-- FIXED OK BUTTON AT BOTTOM -->
+      <div style="padding: 20px; background: var(--bg-secondary);">
+        <button class="help-button" onclick="closeWelcome()">OK</button>
+      </div>
+    </div>
+    <script>
+      document.querySelectorAll('.help-title').forEach(title => {
+        title.addEventListener('click', () => {
+          const content = title.nextElementSibling;
+          const isOpen = content.classList.contains('open');
 
-        
+          // Close all sections
+          document.querySelectorAll('.help-content').forEach(c => c.classList.remove('open'));
+          document.querySelectorAll('.help-title').forEach(t => t.classList.remove('active'));
 
-        <div class="pro-tip">
-            <h3>Pro Tip: The "Hand-Width" Rule</h3>
-            <p>In moderate conditions (10-15 knots), the ideal "Sweet Spot" is found by easing the outhaul until the distance between the center of the boom and the sail foot is approximately <strong>one hand-width</strong> (4-5 inches). 
-            Tighten beyond this in high winds (>18 knots) and loosen in light air (<8 knots).</p>
-        </div>
+          // Open clicked one if it wasn't already open
+          if (!isOpen) {
+            content.classList.add('open');
+            title.classList.add('active');
+          }
+        });
+      });
+    </script>
 
-        <blockquote class="citation">
-            "The outhaul is the most important control for the bottom third of the sail. Tightening it flattens the sail and reduces power... speed is found in fine-tuning this tension to match the sea state and wind velocity."
-            <cite>— Dick Tillman, The Complete Book of Laser Sailing</cite>
-        </blockquote>
+  </div>
+  <!-- END HELP ACCORDION -->
 
+
+
+  <!-- MAIN CONTENT (HIDDEN UNTIL OK CLICKED) -->
+  <div class="main-container" id="mainContainer">
+    <div class="main-grid">
+      <!-- LEFT PANEL 70% - NESTED GRID -->
+      <div class="left-panel">
+        <div class="left-content" id="gameScreen" style="position: relative; overflow: hidden;">
+          <svg id="environment" 
+            style="position:absolute; inset:0; z-index:0; width:100%; height:100%;">
+          </svg>
+          <svg id="windCondition" height="200" width="200" style="position:absolute; left: 50px; bottom: 80px; z-index:10; ">
+            <text x="50" y="15" fill="white">Wind Condition</text>
+            <text x="50" y="30" fill="white" data-windCondition>Loading...</text>
+            <defs>
+              <marker id="end" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="white" />
+              </marker>
+            </defs>
+            <g id="windArrowGroup">
+              <line x1="100" y1="50" x2="100" y2="150" stroke="white" stroke-width="3" marker-end="url(#end)" />
+            </g>
+          </svg>
+
+          <!-- Football-style ruler horizontal knotlines -->    
+          <svg id="horizontalKnotLines" xmlns="http://www.w3.org/2000/svg"
+              style="
+                  position: absolute; 
+                  top: 0px; 
+                  left: 50%; 
+                  width: 600px; 
+                  height: 70px; 
+                  transform: translateX(-50%); 
+                  z-index: 9999; 
+                  pointer-events: none;
+              ">
+
+            <rect x="0" y="0" width="600" height="70" fill="#000000" fill-opacity="0.2" rx="0"/>
+
+            <line x1="70" x2="70" y1="20" y2="60" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
+            <text id="left" data-left="-0.1" x="70" y="16" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">-0.1</text>
+
+            <line x1="300" x2="300" y1="20" y2="60" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
+            <text id="center" data-center="0.0" x="300" y="16" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">0.0</text>
+
+            <line x1="530" x2="530" y1="20" y2="60" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
+            <text id="right" data-right="0.1" x="530" y="16" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">+0.1</text>
+
+            <g stroke="#ffffff" stroke-width="3" stroke-linecap="butt">
+              <line x1="116" x2="116" y1="30" y2="60"/>
+              <line x1="162" x2="162" y1="30" y2="60"/>
+              <line x1="208" x2="208" y1="30" y2="60"/>
+              <line x1="254" x2="254" y1="30" y2="60"/>
+              
+              <line x1="346" x2="346" y1="30" y2="60"/>
+              <line x1="392" x2="392" y1="30" y2="60"/>
+              <line x1="438" x2="438" y1="30" y2="60"/>
+              <line x1="484" x2="484" y1="30" y2="60"/>
+            </g>
+          </svg>
+
+          <!-- Football-style ruler vertical knotlines -->
+          <svg id="verticalKnotLines" xmlns="http://www.w3.org/2000/svg"
+              style="
+                  position: absolute; 
+                  top: 50%; 
+                  left: 0px; 
+                  width: 70px; 
+                  height: 500px; 
+                  transform: translateY(-50%); 
+                  z-index: 50; 
+                  pointer-events: none;
+              ">
+
+            <rect x="0" y="0" width="70" height="500" fill="#000000" fill-opacity="0.2" rx="0"/>
+
+            <line x1="10" x2="60" y1="30" y2="30" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
+            <text id="top" data-top="0.1" x="10" y="22" font-size="16" font-weight="bold" fill="#ffffff">+0.1</text>
+
+            <line x1="10" x2="60" y1="250" y2="250" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
+            <text id="middle" data-middle="0.0" x="10" y="242" font-size="16" font-weight="bold" fill="#ffffff">0.0</text>
+
+            <line x1="10" x2="60" y1="470" y2="470" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
+            <text id="bottom" data-bottom="-0.1" x="10" y="462" font-size="16" font-weight="bold" fill="#ffffff">-0.1</text>
+
+            <g stroke="#ffffff" stroke-width="3" stroke-linecap="butt">
+              <line x1="15" x2="55" y1="74" y2="74"/>
+              <line x1="15" x2="55" y1="118" y2="118"/>
+              <line x1="15" x2="55" y1="162" y2="162"/>
+              <line x1="15" x2="55" y1="206" y2="206"/>
+              
+              <line x1="15" x2="55" y1="294" y2="294"/>
+              <line x1="15" x2="55" y1="338" y2="338"/>
+              <line x1="15" x2="55" y1="382" y2="382"/>
+              <line x1="15" x2="55" y1="426" y2="426"/>
+            </g>
+          </svg>
+
+          <!-- START/FINISH LINE with yellow buoy on the left and RC on the right-->
+          <svg id="startFinishLine" xmlns="http://www.w3.org/2000/svg"
+              style="position: absolute; top: 50%; left: 50%; width: 600px; height: 80px; transform: translate(-50%, -50%); z-index: 50; pointer-events: none; display: none;">
+            
+              <line x1="70" x2="530" y1="40" y2="40" stroke="#ffffff" stroke-width="8" stroke-linecap="butt"/>
+            
+              <circle id="startPin" cx="70" cy="40" r="12" fill="yellow" data-initial-fill="yellow" style="pointer-events: auto;"/>
+            
+              <rect id="startRC" x="500" y="10" width="60" height="60" fill="yellow" data-initial-fill="#dc143c" style="pointer-events: auto;"/>
+              <text x="530" y="45" font-size="28" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle" style="pointer-events: none;">RC</text>
+          </svg>
+
+          <!-- The Mark1 directly north of the center of the start/finish line-->
+          <svg id="mark1" data-hit="false" data-needsExoneration="false" data-penaltyTurnComplete = "false" xmlns="http://www.w3.org/2000/svg"
+              style="
+                  position: absolute;
+                  left: 50%;
+                  top: 50%; 
+                  width: 100px; 
+                  height: 100px; 
+                  transform: translate(-50%, -50%); 
+                  z-index: 40;
+                  display: none;    /* Hidden until needed */
+              ">
+              <circle cx="50" cy="50" r="12" fill="yellow" stroke="white" stroke-width="2" />
+              <text x="50" y="52" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">1</text>
+          </svg>
+
+          <!-- The Mark2 (positioned elsewhere, but same style as Mark1) -->
+          <svg id="mark2" data-hit="false" data-needsExoneration="false" data-penaltyTurnComplete = "false" xmlns="http://www.w3.org/2000/svg"
+              style="
+                  position: fixed; 
+                  left: 50%;
+                  top: 50%; 
+                  width: 100px; 
+                  height: 100px; 
+                  transform: translate(-50%, -50%); 
+                  z-index: 40; 
+                  display: none;    /* Hidden until needed */    
+              ">
+              <circle cx="50" cy="50" r="12" fill="yellow" stroke="white" stroke-width="2" />
+              <text x="50" y="52" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">2</text>
+          </svg>
+
+          <!-- The Mark3 -->
+          <svg id="mark3" data-hit="false" data-needsExoneration="false" data-penaltyTurnComplete = "false" xmlns="http://www.w3.org/2000/svg"
+              style="
+                  position: fixed; 
+                  left: 50%;
+                  top: 50%; 
+                  width: 100px; 
+                  height: 100px; 
+                  transform: translate(-50%, -50%); 
+                  z-index: 40; 
+                  display: none;    /* Hidden until needed */
+              ">
+              <circle cx="50" cy="50" r="12" fill="yellow" stroke="white" stroke-width="2" />
+              <text x="50" y="52" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">3</text>
+          </svg>
+
+          <svg id="playerBoat" xmlns="http://www.w3.org/2000/svg" viewBox="-50 -50 100 200"
+              width="80" height="320" style="position:absolute; left:50%; transform:translateX(-50%); top:3100px; overflow:visible; z-index:9999;" data-boat-x="0" data-boat-y="3100">
+
+            <g id="boatGroup">
+              <polygon id="hull" points="0,0 -25,100 25,100" fill="yellow" stroke="#111" stroke-width="3"/>
+              <g id="tillerGroup" transform="translate(0,100)">
+                <rect x="-2" y="0" width="4" height="30" fill="#2e8b57" rx="2"/>
+              </g>
+              <g id="boomPivot">
+                <!-- Boom (now extending DOWN from bow) -->
+                <rect x="-2" y="0" width="4" height="95" fill="#dc143c"/>
+                
+                <!-- Port tack powered: belly to STARBOARD (right) -->
+                <path id="sailPortTack" 
+                      d="M -2,0 L -2,80 Q 40,60 0,0 Z" 
+                      fill="white" opacity="0.85" stroke="#333" stroke-width="0.5"/>
+                
+                <!-- Starboard tack powered: belly to PORT (left) -->
+                <path id="sailStarboardTack" 
+                      d="M 2,0 L 2,80 Q -40,60 0,0 Z" 
+                      fill="white" opacity="0.85" stroke="#333" stroke-width="0.5"/>
+                
+                <!-- Luffing: floppy waves (flipped to positive y) -->
+                <path id="sailLuffing" 
+                      d="M -2,0 L -2,80 Q 20,40 -20,60 Q 25,70 0,0 Z" 
+                      fill="white" opacity="0.8" stroke="#333" stroke-width="1.2"/>
+              </g>
+            </g>
+          </svg>
         </div>
       </div>
 
+      <!-- RIGHT PANEL 30% - NESTED GRID -->
+      <div class="right-content">
+        <div id="raceControlsOverlay" style="display: flex; flex-direction: column; align-items: center; margin: 30px 0; position: relative; width: 100%; max-width: 300px;">
 
-    
+        <!-- Start Button -->
+        <button id="startButton" 
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  padding: 12px 0;
+                  font-size: 26px;
+                  border-radius: 8px;
+                  background: var(--button-bg);
+                  color: white;
+                  border: none;
+                  cursor: pointer;
+                  font-weight: bold;
+                  z-index: 2;">
+          Start!
+        </button>
+
+        <!-- Timer - Hidden until race starts -->
+        <div id="raceTimer" style="
+              display: block;
+              width: 100%;
+              padding: 12px 0;
+              border-radius: 8px;
+              background: var(--bg-tertiary);
+              text-align: center;
+              z-index: 1;">
+          <div id="raceTimerDisplay" style="font-size: 26px; font-weight: bold; color: var(--text-accent);">
+            T-3:00
+          </div>
+        </div>
+      </div>
+
+        <div id="rcFlagStation" class="right-3col">
+          <div class="cell">
+            <svg id="overEarly" class="hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 90" width="54" height="27">
+              <rect x="0" y="0" width="180" height="90" fill="#ffffff"/>
+              <polygon points="0,0 20,0 180,70 180,90 160,90 0,20" fill="#005eb8"/>
+              <polygon points="180,0 160,0 0,70 0,90 20,90 180,20" fill="#005eb8"/>
+              <rect x="0.5" y="0.5" width="179" height="89" fill="none" stroke="#000" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="cell">
+            <svg id="pennant1" class="hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 180" width="72" height="36">
+              <path fill="#f5f5f5" d="M0,0L360,60V120L0,180ZM135,45A45,45 0 0 0 90,90A45,45 0 1 0 135,45"/>
+              <circle fill="#c8102e" cx="135" cy="90" r="45"/>
+              <path fill="none" stroke="#000" stroke-width="1" d="M0.5,0.5L359.5,60.5V119.5L0.5,179.5Z"/>
+            </svg>
+          </div>
+          <div class="cell">
+            <svg id="preparatory" class="hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="36" height="36">
+              <path fill="#005eb8" d="M0,0H180V180H0ZM57.6,57.6V122.4H122.4V57.6Z"/>
+              <path fill="#f5f5f5" d="M57.6,57.6H122.4V122.4H57.6Z"/>
+              <path fill="none" stroke="#000" stroke-width="1" d="M0.5,0.5H179.5V179.5H0.5Z"/>
+            </svg>
+          </div>
+        </div>
+
+        <div id="tuningControlsGroup" class="right-3col">
+          <div class="cell">
+            <svg id="vangControl" width="60" height="150" viewBox="0 0 60 150">
+              <rect x="0" y="0" width="60" height="20" rx="4" fill="#333" />
+              <text x="30" y="14" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 9px; font-weight: bold;">VANG</text>
+              <g style="cursor: pointer;" onclick="updateControl('vang', 1)">
+                <rect x="5" y="25" width="50" height="40" rx="8" fill="#28a745" />
+                <text x="30" y="52" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 30px; font-weight: bold;">+</text>
+              </g>
+              <rect x="5" y="70" width="50" height="30" rx="4" fill="white" stroke="#ccc" />
+              <text id="vangValue" data-vang="0" x="30" y="92" text-anchor="middle" fill="#333" style="font-family: monospace; font-size: 20px; font-weight: bold;">0</text>
+              <g style="cursor: pointer;" onclick="updateControl('vang', -1)">
+                <rect x="5" y="105" width="50" height="40" rx="8" fill="#dc3545" />
+                <text x="30" y="132" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 35px; font-weight: bold;">-</text>
+              </g>
+            </svg>
+          </div>
+          <div class="cell">
+            <svg id="downhaulControl" width="60" height="150" viewBox="0 0 60 150">
+              <rect x="0" y="0" width="60" height="20" rx="4" fill="#333" />
+              <text x="30" y="14" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 8px; font-weight: bold;">DOWNHAUL</text>
+              <g style="cursor: pointer;" onclick="updateControl('downhaul', 1)">
+                <rect x="5" y="25" width="50" height="40" rx="8" fill="#28a745" />
+                <text x="30" y="52" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 30px; font-weight: bold;">+</text>
+              </g>
+              <rect x="5" y="70" width="50" height="30" rx="4" fill="white" stroke="#ccc" />
+              <text id="downhaulValue" data-downhaul="0" x="30" y="92" text-anchor="middle" fill="#333" style="font-family: monospace; font-size: 20px; font-weight: bold;">0</text>
+              <g style="cursor: pointer;" onclick="updateControl('downhaul', -1)">
+                <rect x="5" y="105" width="50" height="40" rx="8" fill="#dc3545" />
+                <text x="30" y="132" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 35px; font-weight: bold;">-</text>
+              </g>
+            </svg>
+          </div>
+          <div class="cell">
+            <svg id="outhaulControl" width="60" height="150" viewBox="0 0 60 150">
+              <rect x="0" y="0" width="60" height="20" rx="4" fill="#333" />
+              <text x="30" y="14" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 9px; font-weight: bold;">OUTHAUL</text>
+              <g style="cursor: pointer;" onclick="updateControl('outhaul', 1)">
+                <rect x="5" y="25" width="50" height="40" rx="8" fill="#28a745" />
+                <text x="30" y="52" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 30px; font-weight: bold;">+</text>
+              </g>
+              <rect x="5" y="70" width="50" height="30" rx="4" fill="white" stroke="#ccc" />
+              <text id="outhaulValue" data-outhaul="0" x="30" y="92" text-anchor="middle" fill="#333" style="font-family: monospace; font-size: 20px; font-weight: bold;">0</text>
+              <g style="cursor: pointer;" onclick="updateControl('outhaul', -1)">
+                <rect x="5" y="105" width="50" height="40" rx="8" fill="#dc3545" />
+                <text x="30" y="132" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 35px; font-weight: bold;">-</text>
+              </g>
+            </svg>
+          </div>
+        </div>
 
 
-    </div>
-    <div class="action-area">
-      <button id="okButton" class="btn-action">OK</button>
+
+
+        <div id="sheetControl" class="right-4col" data-angle="15">
+          <div class="cell">
+            <button id="btnSheet90" class="control-button" onclick="executeSheet90()">90</button>
+          </div>
+          <div class="cell">
+            <button id="btnSheetPlus" class="control-button" onclick="window.adjustSheet(1)">+1°</button>
+          </div>
+          <div class="cell">
+            <button id="btnSheetMinus" class="control-button" onclick="window.adjustSheet(-1)">-1°</button>
+          </div>
+          <div class="cell">
+            <button id="btnSheet15" class="control-button" onclick="executeSheet15()">15</button>
+          </div>
+        </div>
+
+        <div id="tillerControl" class="right-4col" data-angle="0">
+          <div class="cell">
+            <button id="btnTack" class="control-button" onclick="executeTack()">Tack</button>
+          </div>
+          <div class="cell">
+            <button id="btnPlus" class="control-button" onclick="window.adjustHeading(1)">+1°</button>
+          </div>  
+          <div class="cell">
+            <button id="btnMinus" class="control-button" onclick="window.adjustHeading(-1)">-1°</button>
+          </div>
+          <div class="cell">
+            <button id="btnGybe" class="control-button" onclick="executeGybe()">Gybe</button>
+          </div>  
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <svg id="console" width="300" height="40" viewBox="0 0 300 40" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="300" height="40" fill="#000" fill-opacity="0.2" rx="0"/>
+            <text x="15" y="25" fill="#fff" font-weight="bold">Heading:</text>
+            <text x="100" y="25" fill="#fff" font-weight="bold" data-heading>0°</text>
+            <text x="150" y="25" fill="#fff" font-weight="bold">Speed:</text>
+            <text x="220" y="25" fill="#fff" font-weight="bold" data-speed>0.0 kn</text>
+          </svg>
+        </div>
+      </div>
     </div>
   </div>
-
-  <!-- GAME SCREEN -->
-  <div id="gameScreen">
-    <svg id="environment" style="position:absolute; inset:0; z-index:0;"></svg>
-
-    <svg id="windCondition" height="200" width="200" style="position:fixed; left: 50px; bottom: 80px; z-index:10; ">
-      <text x="50" y="15" fill="white">Wind Condition</text>
-      <text x="50" y="30" fill="white" data-windCondition>Loading...</text>
-      <defs>
-        <marker id="end" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="white" />
-        </marker>
-      </defs>
-      <g id="windArrowGroup">
-        <line x1="100" y1="50" x2="100" y2="150" stroke="white" stroke-width="3" marker-end="url(#end)" />
-      </g>
-    </svg>
-
-    <div id="tuningControlsGroup" style="position: fixed; top: 100px; right: 20px; display: flex; flex-direction: row; gap: 15px; z-index: 1002;">
-
-      <div class="control-stack">
-        <svg id="vangControl" width="60" height="150" viewBox="0 0 60 150">
-          <rect x="0" y="0" width="60" height="20" rx="4" fill="#333" />
-          <text x="30" y="14" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 9px; font-weight: bold;">VANG</text>
-          <g style="cursor: pointer;" onclick="updateControl('vang', 1)">
-            <rect x="5" y="25" width="50" height="40" rx="8" fill="#28a745" />
-            <text x="30" y="52" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 30px; font-weight: bold;">+</text>
-          </g>
-          <rect x="5" y="70" width="50" height="30" rx="4" fill="white" stroke="#ccc" />
-          <text id="vangValue" data-vang="0" x="30" y="92" text-anchor="middle" fill="#333" style="font-family: monospace; font-size: 20px; font-weight: bold;">0</text>
-          <g style="cursor: pointer;" onclick="updateControl('vang', -1)">
-            <rect x="5" y="105" width="50" height="40" rx="8" fill="#dc3545" />
-            <text x="30" y="132" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 35px; font-weight: bold;">-</text>
-          </g>
-        </svg>
-      </div>
-
-      <div class="control-stack">
-        <svg id="downhaulControl" width="60" height="150" viewBox="0 0 60 150">
-          <rect x="0" y="0" width="60" height="20" rx="4" fill="#333" />
-          <text x="30" y="14" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 8px; font-weight: bold;">DOWNHAUL</text>
-          <g style="cursor: pointer;" onclick="updateControl('downhaul', 1)">
-            <rect x="5" y="25" width="50" height="40" rx="8" fill="#28a745" />
-            <text x="30" y="52" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 30px; font-weight: bold;">+</text>
-          </g>
-          <rect x="5" y="70" width="50" height="30" rx="4" fill="white" stroke="#ccc" />
-          <text id="downhaulValue" data-downhaul="0" x="30" y="92" text-anchor="middle" fill="#333" style="font-family: monospace; font-size: 20px; font-weight: bold;">0</text>
-          <g style="cursor: pointer;" onclick="updateControl('downhaul', -1)">
-            <rect x="5" y="105" width="50" height="40" rx="8" fill="#dc3545" />
-            <text x="30" y="132" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 35px; font-weight: bold;">-</text>
-          </g>
-        </svg>
-      </div>
-
-      <div class="control-stack">
-        <svg id="outhaulControl" width="60" height="150" viewBox="0 0 60 150">
-          <rect x="0" y="0" width="60" height="20" rx="4" fill="#333" />
-          <text x="30" y="14" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 9px; font-weight: bold;">OUTHAUL</text>
-          <g style="cursor: pointer;" onclick="updateControl('outhaul', 1)">
-            <rect x="5" y="25" width="50" height="40" rx="8" fill="#28a745" />
-            <text x="30" y="52" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 30px; font-weight: bold;">+</text>
-          </g>
-          <rect x="5" y="70" width="50" height="30" rx="4" fill="white" stroke="#ccc" />
-          <text id="outhaulValue" data-outhaul="0" x="30" y="92" text-anchor="middle" fill="#333" style="font-family: monospace; font-size: 20px; font-weight: bold;">0</text>
-          <g style="cursor: pointer;" onclick="updateControl('outhaul', -1)">
-            <rect x="5" y="105" width="50" height="40" rx="8" fill="#dc3545" />
-            <text x="30" y="132" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 35px; font-weight: bold;">-</text>
-          </g>
-        </svg>
-      </div>
-
-    </div>   
-
-
-    <div id="raceControlBar" class="fixed-ui">
-      <div id="rcFlagStation">
-        <svg id="overEarly" class="hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 90" width="54" height="27">
-          <rect x="0" y="0" width="180" height="90" fill="#ffffff"/>
-          <polygon points="0,0 20,0 180,70 180,90 160,90 0,20" fill="#005eb8"/>
-          <polygon points="180,0 160,0 0,70 0,90 20,90 180,20" fill="#005eb8"/>
-          <rect x="0.5" y="0.5" width="179" height="89" fill="none" stroke="#000" stroke-width="1"/>
-        </svg>
-
-        <svg id="pennant1" class="hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 180" width="72" height="36">
-          <path fill="#f5f5f5" d="M0,0L360,60V120L0,180ZM135,45A45,45 0 0 0 90,90A45,45 0 1 0 135,45"/>
-          <circle fill="#c8102e" cx="135" cy="90" r="45"/>
-          <path fill="none" stroke="#000" stroke-width="1" d="M0.5,0.5L359.5,60.5V119.5L0.5,179.5Z"/>
-        </svg>
-
-        <svg id="preparatory" class="hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="36" height="36">
-          <path fill="#005eb8" d="M0,0H180V180H0ZM57.6,57.6V122.4H122.4V57.6Z"/>
-          <path fill="#f5f5f5" d="M57.6,57.6H122.4V122.4H57.6Z"/>
-          <path fill="none" stroke="#000" stroke-width="1" d="M0.5,0.5H179.5V179.5H0.5Z"/>
-        </svg>
-      </div>
-
-      <div id="raceControlsOverlay">
-        <button id="startButton" class="btn-action">Start!</button>
-        <div id="raceTimer" class="fixed-ui hide">
-          <div id="raceTimerDisplay">T-3:00</div>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Football-style ruler horizontal knotlines -->    
-    <svg id="horizontalKnotLines" xmlns="http://www.w3.org/2000/svg"
-        style="
-            position: fixed; 
-            top: 0px; 
-            left: 50%; 
-            width: 600px; 
-            height: 70px; 
-            transform: translateX(-50%); 
-            z-index: 9999; 
-            pointer-events: none;
-        ">
-
-      <rect x="0" y="0" width="600" height="70" fill="#000000" fill-opacity="0.2" rx="0"/>
-
-      <line x1="70" x2="70" y1="20" y2="60" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
-      <text id="left" data-left="-0.1" x="70" y="16" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">-0.1</text>
-
-      <line x1="300" x2="300" y1="20" y2="60" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
-      <text id="center" data-center="0.0" x="300" y="16" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">0.0</text>
-
-      <line x1="530" x2="530" y1="20" y2="60" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
-      <text id="right" data-right="0.1" x="530" y="16" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">+0.1</text>
-
-      <g stroke="#ffffff" stroke-width="3" stroke-linecap="butt">
-        <line x1="116" x2="116" y1="30" y2="60"/>
-        <line x1="162" x2="162" y1="30" y2="60"/>
-        <line x1="208" x2="208" y1="30" y2="60"/>
-        <line x1="254" x2="254" y1="30" y2="60"/>
-        
-        <line x1="346" x2="346" y1="30" y2="60"/>
-        <line x1="392" x2="392" y1="30" y2="60"/>
-        <line x1="438" x2="438" y1="30" y2="60"/>
-        <line x1="484" x2="484" y1="30" y2="60"/>
-      </g>
-    </svg>
-
-    <!-- Football-style ruler vertical knotlines -->
-    <svg id="verticalKnotLines" xmlns="http://www.w3.org/2000/svg"
-        style="
-            position: fixed; 
-            top: 50%; 
-            left: 0px; 
-            width: 70px; 
-            height: 500px; 
-            transform: translateY(-50%); 
-            z-index: 50; 
-            pointer-events: none;
-        ">
-
-      <rect x="0" y="0" width="70" height="500" fill="#000000" fill-opacity="0.2" rx="0"/>
-
-      <line x1="10" x2="60" y1="30" y2="30" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
-      <text id="top" data-top="0.1" x="10" y="22" font-size="16" font-weight="bold" fill="#ffffff">+0.1</text>
-
-      <line x1="10" x2="60" y1="250" y2="250" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
-      <text id="middle" data-middle="0.0" x="10" y="242" font-size="16" font-weight="bold" fill="#ffffff">0.0</text>
-
-      <line x1="10" x2="60" y1="470" y2="470" stroke="#ffffff" stroke-width="6" stroke-linecap="butt"/>
-      <text id="bottom" data-bottom="-0.1" x="10" y="462" font-size="16" font-weight="bold" fill="#ffffff">-0.1</text>
-
-      <g stroke="#ffffff" stroke-width="3" stroke-linecap="butt">
-        <line x1="15" x2="55" y1="74" y2="74"/>
-        <line x1="15" x2="55" y1="118" y2="118"/>
-        <line x1="15" x2="55" y1="162" y2="162"/>
-        <line x1="15" x2="55" y1="206" y2="206"/>
-        
-        <line x1="15" x2="55" y1="294" y2="294"/>
-        <line x1="15" x2="55" y1="338" y2="338"/>
-        <line x1="15" x2="55" y1="382" y2="382"/>
-        <line x1="15" x2="55" y1="426" y2="426"/>
-      </g>
-    </svg>
-
-    <!-- START/FINISH LINE with yellow buoy on the left and RC on the right-->
-    <svg id="startFinishLine" xmlns="http://www.w3.org/2000/svg"
-        style="position: fixed; top: 50%; left: 50%; width: 600px; height: 80px; transform: translate(-50%, -50%); z-index: 50; pointer-events: none; display: none;">
-      
-        <line x1="70" x2="530" y1="40" y2="40" stroke="#ffffff" stroke-width="8" stroke-linecap="butt"/>
-      
-        <circle id="startPin" cx="70" cy="40" r="12" fill="yellow" data-initial-fill="yellow" style="pointer-events: auto;"/>
-      
-        <rect id="startRC" x="500" y="10" width="60" height="60" fill="yellow" data-initial-fill="#dc143c" style="pointer-events: auto;"/>
-        <text x="530" y="45" font-size="28" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle" style="pointer-events: none;">RC</text>
-    </svg>
-
-
-    <!-- The Mark1 directly north of the center of the start/finish line-->
-    <svg id="mark1" data-hit="false" data-needsExoneration="false" data-penaltyTurnComplete = "false" xmlns="http://www.w3.org/2000/svg"
-        style="
-            position: fixed;
-            left: 50%;
-            top: 50%; 
-            width: 100px; 
-            height: 100px; 
-            transform: translate(-50%, -50%); 
-            z-index: 40;
-            display: none;    /* Hidden until needed */
-        ">
-        <circle cx="50" cy="50" r="12" fill="yellow" stroke="white" stroke-width="2" />
-        <text x="50" y="52" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">1</text>
-    </svg>
-
-    <!-- The Mark2 (positioned elsewhere, but same style as Mark1) -->
-    <svg id="mark2" data-hit="false" data-needsExoneration="false" data-penaltyTurnComplete = "false" xmlns="http://www.w3.org/2000/svg"
-        style="
-            position: fixed; 
-            left: 50%;
-            top: 50%; 
-            width: 100px; 
-            height: 100px; 
-            transform: translate(-50%, -50%); 
-            z-index: 40; 
-            display: none;    /* Hidden until needed */    
-        ">
-        <circle cx="50" cy="50" r="12" fill="yellow" stroke="white" stroke-width="2" />
-        <text x="50" y="52" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">2</text>
-    </svg>
-
-    <!-- The Mark3 -->
-    <svg id="mark3" data-hit="false" data-needsExoneration="false" data-penaltyTurnComplete = "false" xmlns="http://www.w3.org/2000/svg"
-        style="
-            position: fixed; 
-            left: 50%;
-            top: 50%; 
-            width: 100px; 
-            height: 100px; 
-            transform: translate(-50%, -50%); 
-            z-index: 40; 
-            display: none;    /* Hidden until needed */
-        ">
-        <circle cx="50" cy="50" r="12" fill="yellow" stroke="white" stroke-width="2" />
-        <text x="50" y="52" font-size="20" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">3</text>
-    </svg>
-
-
-    <svg id="playerBoat" xmlns="http://www.w3.org/2000/svg" viewBox="-50 -50 100 200"
-        width="80" height="320" style="position:absolute; left:50%; transform:translateX(-50%); top:3100px; overflow:visible; z-index:9999;" data-boat-x="0" data-boat-y="3100">
-
-      <g id="boatGroup">
-        <polygon id="hull" points="0,0 -25,100 25,100" fill="yellow" stroke="#111" stroke-width="3"/>
-        <g id="tillerGroup" transform="translate(0,100)">
-          <rect x="-2" y="0" width="4" height="30" fill="#2e8b57" rx="2"/>
-        </g>
-        <g id="boomPivot">
-          <!-- Boom (now extending DOWN from bow) -->
-          <rect x="-2" y="0" width="4" height="95" fill="#dc143c"/>
           
-          <!-- Port tack powered: belly to STARBOARD (right) -->
-          <path id="sailPortTack" 
-                d="M -2,0 L -2,80 Q 40,60 0,0 Z" 
-                fill="white" opacity="0.85" stroke="#333" stroke-width="0.5"/>
-          
-          <!-- Starboard tack powered: belly to PORT (left) -->
-          <path id="sailStarboardTack" 
-                d="M 2,0 L 2,80 Q -40,60 0,0 Z" 
-                fill="white" opacity="0.85" stroke="#333" stroke-width="0.5"/>
-          
-          <!-- Luffing: floppy waves (flipped to positive y) -->
-          <path id="sailLuffing" 
-                d="M -2,0 L -2,80 Q 20,40 -20,60 Q 25,70 0,0 Z" 
-                fill="white" opacity="0.8" stroke="#333" stroke-width="1.2"/>
-        </g>
-      </g>
-    </svg>
-          
-    <div id="tillerControl" data-angle="0">
-      <button id="btnTack" class="tiller-btn" onclick="executeTack()">Tack</button>
-      <button id="btnPlus" class="tiller-btn" onclick="window.adjustHeading(1)">+1°</button>
-      <button id="btnMinus" class="tiller-btn" onclick="window.adjustHeading(-1)">-1°</button>
-      <button id="btnGybe" class="tiller-btn" onclick="executeGybe()">Gybe</button>
-    </div>
-
-    <div id="sheetControl" data-angle="15">
-      <button id="btnSheet90" class="tiller-btn" onclick="executeSheet90()">90</button>
-      <button id="btnSheetPlus" class="tiller-btn" onclick="window.adjustSheet(1)">+1°</button>
-      <button id="btnSheetMinus" class="tiller-btn" onclick="window.adjustSheet(-1)">-1°</button>
-      <button id="btnSheet15" class="tiller-btn" onclick="executeSheet15()">15</button>
-    </div>
-
-    <!-- Console -->
-    <svg id="console" width="350" height="40" viewBox="0 0 350 40" class="fixed-ui" xmlns="http://www.w3.org/2000/svg" 
-      style="bottom:20px; left:80px; z-index:6000; pointer-events:none;">
-
-      <rect x="0" y="0" width="300" height="35"  fill="#000000" fill-opacity="0.2" rx="0"/>
-      <text x="15" y="25" fill="#ffffff" font-weight="bold">Heading:</text>
-      <text x="100" y="25" fill="#ffffff" font-weight="bold" data-heading>0°</text>
-      <text x="150" y="25" fill="#ffffff" font-weight="bold">Speed:</text>
-      <text x="220" y="25" fill="#ffffff" font-weight="bold" data-speed>0.0 kn</text>
-    </svg>
-  </div>
-
+  <script>
+    function closeWelcome() {
+      document.getElementById('welcomeOverlay').style.display = 'none';
+      document.getElementById('mainContainer').style.display = 'block';
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/animejs@latest/dist/bundles/anime.umd.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>

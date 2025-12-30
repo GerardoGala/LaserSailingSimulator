@@ -15,7 +15,6 @@
 //    If we removed these lines, the controls would stop working and the
 //    welcome screen wouldn't appear, even though no variable is "used".
 //
-import './welcome.js';          // Shows/hides welcome modal, handles "don't show again"
 import './startButton.js';      // Handles click on the big "Start!" button
 import './tillerControl.js';    // updates data-angle
 import './sheetControl.js';     // updates data-angle
@@ -37,7 +36,6 @@ import { game } from './game.js';
 window.debug = { environment, playerBoat, aiBoat, raceTimer, game, };
 
 document.addEventListener('DOMContentLoaded', () => {
-  const welcomeScreen = document.getElementById('welcomeScreen');
   const gameScreen    = document.getElementById('gameScreen');
   const okButton      = document.getElementById('okButton');
   const startButton   = document.getElementById('startButton');
@@ -53,13 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   requestAnimationFrame(envLoop);
 
-  okButton.addEventListener('click', () => {
-    welcomeScreen.style.display = 'none';
-    gameScreen.style.display = 'block';
-    
-    // Boats are NOT initialized here anymore
-    console.log("Welcome cleared. Waiting for Start button...");
-  });
+
 
   // START Button: The actual "Engine Start" and 3-minute Countdown
   startButton.addEventListener('click', () => {
@@ -84,12 +76,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     requestAnimationFrame(boatLoop);
   });
-
-  // Auto-skip welcome logic
-  if (localStorage.getItem('hideWelcome') === 'true') {
-    welcomeScreen.style.display = 'none';
-    gameScreen.style.display = 'block';
-    // We don't click okButton.click() because we want to wait for Start button
-    // But if your logic requires the OK setup, you can still call it.
-  }
 });
