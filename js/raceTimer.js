@@ -1,19 +1,25 @@
 console.log("raceTimer.js starting");
 
 import { playerBoat } from './playerBoat.js';
+import { wind } from './wind.js';         // ← NEW IMPORT
 
 const raceTimer = {
   startTime: null,
   elapsed: -180,        // start at T-3:00
   running: false,
 
-  // NEW: Track whether an OverEarly violation is currently active
+  // Track whether an OverEarly violation is currently active
   overEarlyActive: false,
 
   start() {
     if (this.running) return;
     this.running = true;
     this.overEarlyActive = false; // Reset in case of restart
+
+    // === WIND INITIALIZATION AT T-3:00 ===
+    // This is the perfect moment: layout is stable (fixes mobile bug)
+    // and player now has full 3 minutes to read the wind and plan strategy
+    wind.init();
 
     this.startTime = performance.now() - (this.elapsed * 1000);
     console.log("Race timer STARTED at T-3:00");
@@ -53,16 +59,14 @@ const raceTimer = {
       // === OVER EARLY DETECTION AT THE START GUN ===
       const middleLine = document.getElementById("middle");
       const middleVal = middleLine ? parseFloat(middleLine.getAttribute('data-middle') || '0') : 0;
-      const BOW_THRESHOLD_Y = 342; // Bow crosses line around this Y value (lower Y = higher on screen)
+      const BOW_THRESHOLD_Y = 342; // Bow crosses line around this Y value
 
       let overEarly = false;
 
       if (middleVal > 0.01) {
-        // Player has already made upwind progress (wrapped at least once)
         overEarly = true;
         console.log(`OVER EARLY – player has wrapped (middle: ${middleVal.toFixed(2)})`);
       } else if (playerBoat.y < BOW_THRESHOLD_Y) {
-        // Still in starting area, but bow is visually over the line
         overEarly = true;
         console.log(`OVER EARLY – bow above line (y: ${playerBoat.y.toFixed(0)} < ${BOW_THRESHOLD_Y})`);
       } else {
@@ -86,25 +90,18 @@ const raceTimer = {
     this.updateDisplay();
 
     // === OVER EARLY CLEARING LOGIC (runs every frame after start) ===
-    // This allows a player who was over early at the gun to dip back below
-    // the entire starting line and clear their violation (real sailing rule).
-    // We only check if the flag is currently up to avoid unnecessary work.
     if (this.overEarlyActive && this.elapsed >= 0) {
       const middleLine = document.getElementById("middle");
       const middleVal = middleLine ? parseFloat(middleLine.getAttribute('data-middle') || '0') : 0;
-      const BOW_THRESHOLD_Y = 320; // Must match the value used in detection
+      const BOW_THRESHOLD_Y = 320;
 
       const overEarlyFlag = document.getElementById("overEarly");
 
-      // To clear: the ENTIRE boat must be on the pre-start side
-      // 1. No upwind progress made (data-middle back to ≈0)
-      // 2. Boat pivot Y high enough that even the bow is below the line
       if (middleVal <= 0.01 && playerBoat.y >= BOW_THRESHOLD_Y) {
         overEarlyFlag?.classList.add("hide");
         this.overEarlyActive = false;
         console.log("OverEarly CLEARED – boat fully returned to pre-start side");
       }
-      // If conditions not met yet, flag stays up – player must sail further back
     }
 
     requestAnimationFrame(this.tick.bind(this));

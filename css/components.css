@@ -1,0 +1,154 @@
+/* ===================================
+   HELP / WELCOME OVERLAY
+   =================================== */
+.help-container {
+  width: 90vw;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+.help-chapter {
+  width: 100%;
+  border-bottom: 1px solid var(--border);
+}
+
+.help-chapter:last-child {
+  border-bottom: none;
+}
+
+.help-title {
+  background: var(--bg-tertiary);
+  color: var(--text-accent);
+  padding: 18px 24px;
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+  width: 100%;
+  min-width: 0;
+}
+
+.help-title:hover {
+  background: #363637;
+}
+
+.help-title::after {
+  content: "+";
+  font-size: 28px;
+  color: var(--text-secondary);
+  transition: transform 0.3s ease;
+}
+
+.help-title.active::after {
+  content: "−";
+}
+
+.help-content {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 24px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  transition: max-height 0.4s ease, padding 0.4s ease;
+}
+
+.help-content.open {
+  max-height: 2000px;
+  padding: 28px 24px;
+}
+
+.help-content p {
+  margin: 14px 0;
+}
+
+.help-content ul {
+  padding-left: 28px;
+  margin: 14px 0;
+}
+
+.help-content strong {
+  color: var(--text-accent);
+}
+
+.help-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+  margin: 20px 0;
+}
+
+.help-content th,
+.help-content td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.help-content th {
+  border-bottom: 2px solid white;
+}
+
+.help-content .performance-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  margin: 20px 0;
+  font-size: 0.95em;
+}
+
+.help-content .grid-header,
+.help-content .performance-grid > div {
+  background: var(--bg-tertiary);
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.help-content .grid-header {
+  background: var(--bg-primary);
+  font-weight: bold;
+  color: var(--text-accent);
+}
+
+.video-link a {
+  color: var(--text-accent);
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.help-button {
+  width: 100%;
+  background: var(--button-bg);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.help-button:hover {
+  background: var(--button-hover);
+}
+
+/* ===================================
+   UTILITIES
+   =================================== */
+.hide {
+  display: none !important;
+}

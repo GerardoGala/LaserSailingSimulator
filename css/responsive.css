@@ -1,0 +1,22 @@
+/* ===================================
+   RESPONSIVE – MOBILE-FIRST HELICOPTER VIEW
+   =================================== */
+@media (max-width: 768px) {
+  /* Main grid layout for mobile */
+  .main-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 50dvh 50dvh;  /* True 50% of visible height each */
+    height: 100dvh;                   /* Full visible viewport */
+    overflow: hidden;                 /* No accidental scroll */
+  }
+
+  /* GLOBAL scale for the left panel */
+  .left-panel {
+    transform: scale(0.6);         /* shrink everything */
+    transform-origin: top left;    /* anchor at top-left */
+    width: calc(100% / 0.6);       /* compensate for scaling so it fills grid cell */
+    height: calc(100% / 0.6);
+    overflow: hidden;
+  }
+
+}

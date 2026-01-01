@@ -27,6 +27,7 @@ import './fineTuneControls.js'; // updates data-angle
 //    These do NOT run major setup code on import — they just provide data/tools.
 //
 import { environment } from './environment.js';
+import { wind } from './wind.js';
 import { aiBoat } from './aiBoat.js';
 import { playerBoat } from './playerBoat.js';
 import { raceTimer } from './raceTimer.js';
