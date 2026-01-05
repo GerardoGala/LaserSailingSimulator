@@ -2,9 +2,10 @@
 
 @media (max-width: 768px) and (orientation: portrait) {
   body {
-    height: 100vh;
-    overflow: hidden;
-    margin: 0;
+    height: auto;             /* allow body height to expand */
+    overflow-y: auto;         /* enable vertical scroll */
+    margin: 0;                /* keep margin reset if needed */
+    -webkit-overflow-scrolling: touch; /* smooth scroll for iOS */
   }
 
   .main-grid {
