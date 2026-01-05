@@ -11,104 +11,67 @@
 </head>
 <body>
   <!-- WELCOME DIALOG (unchanged) -->
-  <div class="welcome-overlay" id="welcomeOverlay">
-    <!-- ... your full welcome content remains exactly as before ... -->
-    <div style="position: absolute; inset: 0; background: rgba(30, 30, 30, 0.95); display: grid; grid-template-rows: 1fr auto; overflow: hidden;">
-      
-      <!-- SCROLLABLE HELP SECTION -->
-      <div style="overflow-y: auto; padding: 20px; display: grid; place-items: center;">
-        <!-- 01. THE RACE -->
-        <div class="help-chapter">
+ <div
+  class="welcome-overlay"
+  id="welcomeOverlay"
+  style="position: fixed; inset: 0; height: 100dvh;"
+>
+  <div
+    style="
+      padding: 20px;
+      background: var(--bg-secondary);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    "
+  >
+    <h2 style="color: var(--text-accent); text-align: center;">
+      Welcome to the Laser Sailing Simulator Webpage
+    </h2>
+
+    <!-- SCROLLABLE HELP SECTION -->
+    <div style="flex: 1; overflow-y: auto; padding: 20px;">
+      <div class="help-chapter">
+  
           <div class="help-title">01. The Race</div>
           <div class="help-content">
             <p>1. 3-minute Start</p>
             <p>a. Flags at T-3.00, T-2.00, T-1.00, and T-0.00</p>
-          </div>
-        </div>
-
-        <!-- 02. THE RACE COURSE -->
-        <div class="help-chapter">
-          <div class="help-title">02. The Race Course</div>
-          <div class="help-content">
-            <p>1. Standard triangle race course:</p>
+            <p>2. Standard triangle race course:</p>
             <p><img src="assets/course-map.jpg" alt="Laser Race Course Map" style="width:100%; max-width:400px; border-radius:8px; margin:16px 0;"></p>
-            <p>2. Round all marks to port. Finish between the RC boat and the pin.</p>
+            <p>a. Round all marks to port. Finish between the RC boat and the pin.</p>
           </div>
         </div>
-
-        <!-- 03. THE ENVIRONMENT -->
         <div class="help-chapter">
-          <div class="help-title">03. The Environment</div>
+          <div class="help-title">02. The Environment</div>
           <div class="help-content">
-            <p>The 2026 Laser Race is held at <strong>Mucuripe Beach, Fortaleza, Ceará, Brazil</strong>.</p>
-            <p>Watch for the jangadas on the horizon and prepare for the Atlantic trade winds!</p>
-            
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 30px 0;">
-            
-            <p style="font-style: italic; font-size: 0.9em;">"The wind breathes." — Frank Bethwaite</p>
-            
-            <table>
-              <thead>
-                <tr>
-                  <th>Factor</th>
-                  <th>Pattern (Bethwaite Cycle)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Micro-Puffs</strong></td>
-                  <td>6–12 second peaks; speed fluctuations of ±7%.</td>
-                </tr>
-                <tr>
-                  <td><strong>Tactical Shifts</strong></td>
-                  <td>Oscillations of ±15° to 20° every 3–6 minutes.</td>
-                </tr>
-                <tr>
-                  <td><strong>Atlantic Gusts</strong></td>
-                  <td>Sudden power increases of up to 30% from base wind.</td>
-                </tr>
-              </tbody>
-            </table>
-            
+            <p>
+            The 2026 ILCA World Championships — featuring both the <strong>ILCA 7 Men’s</strong> and 
+            <strong>ILCA 6 Women’s</strong> fleets — will be held at 
+            <strong>Dún Laoghaire, Ireland</strong>, on the waters of Dublin Bay. The event runs from late 
+            August to mid‑September 2026, with sailors from around the world competing for world titles. :contentReference[oaicite:2]{index=2}
+            </p>
+
+            <p>
+            Average coastal breezes in Dublin Bay often hover around <strong>10–12 knots</strong>, 
+            providing ideal conditions for tactical dinghy racing. However, like all open‑bay venues, these 
+            winds can fluctuate with gusts, shifts, and lulls throughout the day. Competitors should 
+            anticipate both steady trade‑style breezes and local variability that will test sail trim, 
+            helm control, and tactical choices.  
+            </p>
+
+            <p>
+            Dún Laoghaire’s racing areas are exposed to the open Irish Sea, where afternoon sea breezes 
+            and frontal weather systems can contribute to changing wind patterns. Waves and tidal currents 
+            on Dublin Bay also play a role in strategy and boat speed, making local conditions dynamic and 
+            challenging.  
+            </p>           
             <p>The wind condition will be announced at the start of the race.</p>
           </div>
         </div>
 
-        <!-- 04. THE CONTROLS -->
         <div class="help-chapter">
-          <div class="help-title">04. The Controls</div>
-          <div class="help-content">
-            <p>Watch this guide to master <strong>Laser Sail Tuning</strong> for medium winds. These adjustments are critical for the 3-minute setup phase before your race begins.</p>
-            
-            <div class="video-link" style="margin:20px 0;">
-              <a href="http://www.youtube.com/watch?v=RjokxLehlaY" target="_blank">
-                <strong>Video: Laser Sail Tuning & Adjusting Tips</strong>
-              </a>
-            </div>
-            
-            <h3 style="color:var(--text-accent); margin-top:24px;">Outhaul</h3>
-            <ul>
-              <li><strong>Function:</strong> Controls the bottom edge and the depth (belly) of the sail.</li>
-              <li><strong>Optimization:</strong> Leave roughly a "hand span" of space between the sail and the boom. This creates the ideal balance of drive and boat control.</li>
-            </ul>
-            
-            <h3 style="color:var(--text-accent); margin-top:20px;">Cunningham (Downhaul)</h3>
-            <ul>
-              <li><strong>Function:</strong> Controls the tension on the front edge (luff) and the upper part of the sail.</li>
-              <li><strong>Optimization:</strong> Pulling it tight flattens the top of the sail to "shed" power when you are overpowered. In lighter winds, use just enough tension to smooth out vertical creases.</li>
-            </ul>
-            
-            <h3 style="color:var(--text-accent); margin-top:20px;">Boom Vang (Kicker)</h3>
-            <ul>
-              <li><strong>Function:</strong> Holds the boom down and bends the mast to flatten the mid-section of the sail.</li>
-              <li><strong>Optimization:</strong> Essential for gusts. Proper tension allows you to ease the mainsheet without the boom rising, preventing the sail from accidentally powering up when you're trying to depower.</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- 05. ILCA TARGET SPEEDS -->
-        <div class="help-chapter">
-          <div class="help-title">05. ILCA Target Speeds (10-12kts Wind)</div>
+          <div class="help-title">03. ILCA Target Speeds (10-12kts Wind)</div>
           <div class="help-content">
             <div class="performance-grid">
               <div class="grid-header">Point of Sail</div>
@@ -144,9 +107,39 @@
           </div>
         </div>
 
-        <!-- 06. THE PHYSICS OF LASER SAILING -->
         <div class="help-chapter">
-          <div class="help-title">06. The Physics of Laser Sailing</div>
+          <div class="help-title">04. The Controls</div>
+          <div class="help-content">
+            <p>Watch this guide to master <strong>Laser Sail Tuning</strong> for medium winds. These adjustments are critical for the 3-minute setup phase before your race begins.</p>
+            
+            <div class="video-link" style="margin:20px 0;">
+              <a href="http://www.youtube.com/watch?v=RjokxLehlaY" target="_blank">
+                <strong>Video: Laser Sail Tuning & Adjusting Tips</strong>
+              </a>
+            </div>
+            
+            <h3 style="color:var(--text-accent); margin-top:24px;">Outhaul</h3>
+            <ul>
+              <li><strong>Function:</strong> Controls the bottom edge and the depth (belly) of the sail.</li>
+              <li><strong>Optimization:</strong> Leave roughly a "hand span" of space between the sail and the boom. This creates the ideal balance of drive and boat control.</li>
+            </ul>
+            
+            <h3 style="color:var(--text-accent); margin-top:20px;">Cunningham (Downhaul)</h3>
+            <ul>
+              <li><strong>Function:</strong> Controls the tension on the front edge (luff) and the upper part of the sail.</li>
+              <li><strong>Optimization:</strong> Pulling it tight flattens the top of the sail to "shed" power when you are overpowered. In lighter winds, use just enough tension to smooth out vertical creases.</li>
+            </ul>
+            
+            <h3 style="color:var(--text-accent); margin-top:20px;">Boom Vang (Kicker)</h3>
+            <ul>
+              <li><strong>Function:</strong> Holds the boom down and bends the mast to flatten the mid-section of the sail.</li>
+              <li><strong>Optimization:</strong> Essential for gusts. Proper tension allows you to ease the mainsheet without the boom rising, preventing the sail from accidentally powering up when you're trying to depower.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="help-chapter">
+          <div class="help-title">05. The Physics of Laser Sailing</div>
           <div class="help-content">
             <p>To master the Laser, you must manipulate the sail's shape to balance <strong>Lift</strong> and <strong>Drag</strong>. The <strong>Outhaul</strong> is your primary tool for controlling the "lower gear" of the boat by adjusting the <strong>Camber</strong> (depth).</p>
             
