@@ -33,17 +33,19 @@ const wind = {
     this.updateWindUI();
   },
 
-updateWindUI() {
-  const windText = document.querySelector('[data-windCondition]');
-  const gameScreen = document.getElementById('gameScreen');
+  updateWindUI() {
+    // Fixed: removed stray "sea" line
+    // Fixed: now selects the correct text element inside the console group
+    const windText = document.querySelector('#console text[data-windCondition]');
 
-  if (!gameScreen || !windText ) return;
+    if (!windText) {
+      console.warn("Wind display element not found");
+      return;
+    }
 
-  // Update text (unchanged)
-  const shiftLabel = this.trueWindDir >= 0 ? `+${this.trueWindDir}` : `${this.trueWindDir}`;
-  windText.textContent = `${this.currentWindSpeed} knots at ${shiftLabel}°`;
-
-},
+    const shiftLabel = this.trueWindDir >= 0 ? `+${this.trueWindDir}` : `${this.trueWindDir}`;
+    windText.textContent = `${this.currentWindSpeed} knots at ${shiftLabel}°`;
+  },
 
   // Helper for other modules to read current wind values
   getCurrentWind() {

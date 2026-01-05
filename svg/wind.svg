@@ -1,4 +1,4 @@
-<svg id="windCondition" xmlns="http://www.w3.org/2000/svg" height="200" width="200" style="position:fixed; right: 20px; top: 100px; z-index:0; ">
+<svg id="windCondition" xmlns="http://www.w3.org/2000/svg" height="200" width="200" style="position:absolute; right: 20px; top: 100px; z-index:0; ">
 <text x="50" y="15" fill="red">Wind Condition</text>
 <text x="50" y="30" fill="red">15 knots at 30</text>
       

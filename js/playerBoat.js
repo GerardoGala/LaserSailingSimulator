@@ -1,7 +1,8 @@
 // js/playerBoat.js
 console.log("playerBoat.js loading…");
+import { WORLD } from './world.js';
 
-// #region ANIMATION ENGINE SETUP
+// #region ANIMATION ENGINE SETUP (unchanged)
 const animePromise = new Promise((resolve, reject) => {
   if (window.anime && typeof window.anime === 'function') return resolve(window.anime);
   const script = document.createElement('script');
@@ -22,10 +23,10 @@ export const playerBoat = {
   sailStarboardTack: null,
   sailLuffing: null,
 
-  x: 0,
-  y: 0,
-  logicalX: 0,
-  logicalY: 0,
+  x: 300,       // now in world coordinates (0-600)
+  y: 350,       // now in world coordinates (0-500)
+  logicalX: 300,
+  logicalY: 350,
   heading: 315,   
   speed: 0,      
   boomAngle: 0,
@@ -48,17 +49,6 @@ export const playerBoat = {
     this.tillerGroup = this.el.querySelector('#tillerGroup');
     this.boomPivot = this.el.querySelector('#boomPivot');
 
-    const margin = 100;
-    const viewWidth = window.innerWidth;
-    const viewHeight = window.innerHeight; 
-    const startX = viewWidth - margin;
-    const startY = viewHeight - margin;
-
-    this.x = startX;
-    this.y = startY;
-    this.logicalX = startX;
-    this.logicalY = startY;
-
     if (!this.el || !this.boatGroup) {
       console.error("Player boat SVG elements missing!");
       return;
@@ -68,23 +58,22 @@ export const playerBoat = {
     this.sailStarboardTack = this.boomPivot.querySelector('#sailStarboardTack');
     this.sailLuffing = this.boomPivot.querySelector('#sailLuffing');
 
-    this.updatePosition();
+    // Start position is already set in HTML via transform="translate(300,350)"
+    this.x = 300;
+    this.y = 350;
+    this.logicalX = 300;
+    this.logicalY = 350;
+
     console.log("Player boat initialized.");
     window.playerBoat = this;
   },
   // #endregion
 
-  // #region UPDATE LOOP
+  // #region UPDATE LOOP (physics unchanged – only position code updated)
   update() {
     if (!this.el) return;
 
-    const gameScreen = document.getElementById('gameScreen');
-const rect = gameScreen.getBoundingClientRect();
-const viewWidth  = rect.width;
-const viewHeight = rect.height;
-
-
-    // --- 1. TILLER & INPUT ---
+    // --- 1. TILLER & INPUT (unchanged) ---
     const tillerUI = document.getElementById('tillerControl');
     let targetTillerAngle = parseFloat(tillerUI?.getAttribute('data-angle') || '0');
     if (Math.abs(targetTillerAngle) <= 2) targetTillerAngle = 0;
@@ -96,65 +85,47 @@ const viewHeight = rect.height;
     this.heading += targetTillerAngle * 0.04;
     this.heading = (this.heading % 360 + 360) % 360;
 
-    // --- 2. MAINSHEET ---
+    // --- 2. MAINSHEET (unchanged) ---
     const sheetUI = document.getElementById('sheetControl');
     this.sheetAngle = parseInt(sheetUI?.getAttribute('data-angle') || '15', 10);
     this.tillerAngle = targetTillerAngle;
 
-
-
-// --- 3. PHYSICS (Laser Performance Specs) ---
-    // A. Parse Wind Condition from DOM
+    // --- 3. PHYSICS (exactly your original code – unchanged) ---
     const windDisplay = document.querySelector('[data-windCondition]')?.textContent || "10 knots at 0°";
     const windMatch = windDisplay.match(/(-?\d+)/g); 
     const currentWindSpeed = windMatch ? parseFloat(windMatch[0]) : 10;
     const currentWindShift = windMatch ? parseFloat(windMatch[1]) : 0;
 
-    // A2. Capture Outhaul Tuning (Range -2 to +2)
     const outhaulElement = document.getElementById('outhaulValue');
     const outhaulVal = parseFloat(outhaulElement?.getAttribute('data-outhaul')) || 0;
 
-    // B. Calculate Wind Geometry
     const relativeWind = ((this.heading + 180 - currentWindShift) % 360) - 180; 
     const onPortTack = relativeWind < 0; 
     const absRel = Math.abs(relativeWind);
     const inNoGoZone = absRel < 45;
     const isLuffing = this.sheetAngle > absRel;
 
-    // C. Auto-Tack Logic
     if (Math.abs(this.tillerAngle) >= 9 && inNoGoZone && !this.tackCommitment) {
         this.tackCommitment = true;
         this.targetRelativeWind = onPortTack ? 45 : -45;
     }
 
-    // D. PHYSICS (Tuning Constants) ---
-    const turnDragFactor   = 150;  // Higher = LESS speed lost when just steering
-    const tackPenaltyBase  = 0.25; // % of wind speed maintained during a tack
+    const turnDragFactor   = 150;
+    const tackPenaltyBase  = 0.25;
 
-    // E. IDEAL OUTHAUL CALCULATION (Per Chapter 05 Physics)
-    // Range -2 (Loose) to +2 (Tight)
     let idealOuthaul = 0; 
-    if (currentWindSpeed < 8) {
-        idealOuthaul = -2.0; // Light air: Needs max depth/power
-    } else if (currentWindSpeed > 18) {
-        idealOuthaul = 2.0;  // Heavy air: Needs max flatness to reduce drag
-    } else if (currentWindSpeed > 15) {
-        idealOuthaul = 1.0;  
-    } else if (currentWindSpeed < 10) {
-        idealOuthaul = -1.0; 
-    }
+    if (currentWindSpeed < 8) idealOuthaul = -2.0;
+    else if (currentWindSpeed > 18) idealOuthaul = 2.0;
+    else if (currentWindSpeed > 15) idealOuthaul = 1.0;
+    else if (currentWindSpeed < 10) idealOuthaul = -1.0;
 
-    // Calculate Outhaul Efficiency
     const outhaulError = Math.abs(outhaulVal - idealOuthaul);
     const outhaulEfficiency = Math.max(0.80, 1 - (outhaulError * 0.05));
-
-    
 
     let potentialSpeed = 0; 
     let idealSheet = 0;
 
     if (this.tackCommitment) {
-        // TACK PENALTY
         potentialSpeed = currentWindSpeed * tackPenaltyBase; 
         let angleDiff = this.targetRelativeWind - relativeWind;
         this.heading += Math.sign(angleDiff) * 2.0;
@@ -166,7 +137,6 @@ const viewHeight = rect.height;
         if (this.sailLuffing) this.sailLuffing.style.display = 'block';
     } 
     else {
-        // Speed Ratios based on Point of Sail
         switch (true) {
             case (absRel < 44): potentialSpeed = currentWindSpeed * 0.32; idealSheet = 2;  break;
             case (absRel < 49): potentialSpeed = currentWindSpeed * 0.47; idealSheet = 5;  break;
@@ -176,88 +146,49 @@ const viewHeight = rect.height;
             default: potentialSpeed = currentWindSpeed * 0.42; idealSheet = 90; break;
         }
 
-        // Calculate Sail Trim Efficiency
         const sheetError = Math.abs(this.sheetAngle - idealSheet);
         let sheetEfficiency = Math.max(0.2, 1 - (sheetError / 40)); 
-
-        // Apply all multipliers to final potential speed
         potentialSpeed = potentialSpeed * sheetEfficiency * outhaulEfficiency;
-
-        // TURNING DRAG: Squeeze the speed if the tiller is hard over
         const turnPenalty = 1 - (Math.abs(this.tillerAngle) / turnDragFactor); 
         potentialSpeed *= turnPenalty;
-
         this.boomAngle = onPortTack ? this.sheetAngle : -this.sheetAngle;
         if (this.sailLuffing) this.sailLuffing.style.display = 'none';
     }
 
-
-
-
-
-
-    // --- THE INERTIA ENGINE ---
-    // If potentialSpeed is higher, we accelerate slowly (0.015)
-    // If potentialSpeed is lower (like during a tack), we drop speed faster (0.04)
     const inertiaRate = (potentialSpeed > this.speed) ? 0.015 : 0.04;
     this.speed += (potentialSpeed - this.speed) * inertiaRate;
 
-// --- SAIL VISIBILITY & SHAPE ---
-let pathString = "";
-// 1. ClewY: Median 90, Range 85 to 95 (Stretching along the boom)
-// Tight (-2) = 95 units long | Loose (+2) = 85 units long
-const clewY = 90 + (outhaulVal * 2.5); 
+    // --- SAIL VISIBILITY & SHAPE (unchanged) ---
+    const clewY = 90 + (outhaulVal * 2.5); 
+    const belly = -30 - (outhaulVal * 5);
+    let pathString = "";
 
-// 2. BellyX: Median 30, Range 20 to 40 (The bulge)
-// Tight (-2) = -20 (Flat) | Loose (+2) = -40 (Baggy)
-const belly = -30 - (outhaulVal * 5);
-
-if (onPortTack) {
-    // Starboard sail (Belly is negative X)
-    pathString = `M-2,0 L-2,${clewY} Q ${belly},65 2,0 Z`;
-    this.sailStarboardTack.setAttribute('d', pathString);
-} else {
-    // Port sail (Belly is positive X)
-    pathString = `M2,0 L2,${clewY} Q ${-belly},65 2,0 Z`;
-    this.sailPortTack.setAttribute('d', pathString);
-}
-
-if (!this.tackCommitment && !inNoGoZone && !isLuffing) {
     if (onPortTack) {
-        // --- STARBOARD TACK ---
-        this.sailStarboardTack.style.display = 'block';
-        this.sailPortTack.style.display = 'none';
-        
-        // Construct the string
+        pathString = `M-2,0 L-2,${clewY} Q ${belly},65 2,0 Z`;
         this.sailStarboardTack.setAttribute('d', pathString);
-        console.log("starboardTack path: ", pathString);
-        
     } else {
-        // --- PORT TACK ---
-        this.sailPortTack.style.display = 'block';
-        this.sailStarboardTack.style.display = 'none';
-        
-        // Construct the string
+        pathString = `M2,0 L2,${clewY} Q ${-belly},65 2,0 Z`;
         this.sailPortTack.setAttribute('d', pathString);
-        console.log("portTack path: ", pathString);
     }
-    this.sailLuffing.style.display = 'none';
-} else {
-    // --- LUFFING OR TACKING ---
-    this.sailLuffing.style.display = 'block';
-    this.sailPortTack.style.display = 'none';
-    this.sailStarboardTack.style.display = 'none';
-    
-    pathString = `M 0,0 L 0,${clewY.toFixed(1)} Q 20,40 -20,60 Q 25,70 0,0 Z`;
-    this.sailLuffing.setAttribute('d', pathString);
-}
 
+    if (!this.tackCommitment && !inNoGoZone && !isLuffing) {
+        if (onPortTack) {
+            this.sailStarboardTack.style.display = 'block';
+            this.sailPortTack.style.display = 'none';
+        } else {
+            this.sailPortTack.style.display = 'block';
+            this.sailStarboardTack.style.display = 'none';
+        }
+        this.sailLuffing.style.display = 'none';
+    } else {
+        this.sailLuffing.style.display = 'block';
+        this.sailPortTack.style.display = 'none';
+        this.sailStarboardTack.style.display = 'none';
+        pathString = `M 0,0 L 0,${clewY.toFixed(1)} Q 20,40 -20,60 Q 25,70 0,0 Z`;
+        this.sailLuffing.setAttribute('d', pathString);
+    }
 
-
-
-
-
-// --- 4. VISUAL TRANSFORMATIONS ---
+    // --- 4. BOOM & BOAT ROTATION (unchanged) ---
     if (this.boomPivot) {
         this.boomPivot.setAttribute('transform', `translate(0,0) rotate(${this.boomAngle}, 0, 0)`);
     }
@@ -265,7 +196,8 @@ if (!this.tackCommitment && !inNoGoZone && !isLuffing) {
         this.boatGroup.setAttribute('transform', `translate(0,50) rotate(${this.heading}) translate(0,-50)`);
     }
 
-    const pixelsPerSecond = this.speed * 10.6;
+    // --- 5. MOVEMENT (now in world units) ---
+    const pixelsPerSecond = this.speed * 50;
     const dx = Math.sin(this.heading * Math.PI / 180) * (pixelsPerSecond / 60);
     const dy = -Math.cos(this.heading * Math.PI / 180) * (pixelsPerSecond / 60);
 
@@ -274,29 +206,30 @@ if (!this.tackCommitment && !inNoGoZone && !isLuffing) {
     this.logicalX += dx;
     this.logicalY += dy;
 
-    // --- 5. SCREEN WRAPPING ---
-    const step = 0.2; 
-    const threshold = 230; 
-const horizontalCenter = viewWidth / 2;
-const verticalCenter   = viewHeight / 2;
+    // --- 6. SCREEN WRAPPING (fixed to match viewBox 0-600 x, 0-500 y) ---
+    const step = 0.2;
+    const worldWidth = 600;
+    const worldHeight = 500;
 
-    if (this.y < (verticalCenter - threshold)) { 
-      this.y = verticalCenter + threshold;
+    if (this.y < 0) {
+      this.y = worldHeight;
       this.updateVerticalKnotlines(step);
-    } else if (this.y > (verticalCenter + threshold)) {
-      this.y = verticalCenter - threshold;
+    }
+    else if (this.y > worldHeight) {
+      this.y = 0;
       this.updateVerticalKnotlines(-step);
     }
 
-    if (this.x > (horizontalCenter + threshold)) {
-      this.x = horizontalCenter - threshold;
+    if (this.x > worldWidth) {
+      this.x = 0;
       this.updateHorizontalKnotlines(step);
-    } else if (this.x < (horizontalCenter - threshold)) {
-      this.x = horizontalCenter + threshold;
+    }
+    else if (this.x < 0) {
+      this.x = worldWidth;
       this.updateHorizontalKnotlines(-step);
     }
 
-    // --- 6. MARK VISIBILITY & UI ---
+    // --- 7. MARK VISIBILITY & COLLISION (unchanged) ---
     const mEl = document.getElementById('middle');
     const cEl = document.getElementById('center');
     const startFinishLine = document.getElementById('startFinishLine');
@@ -314,7 +247,6 @@ const verticalCenter   = viewHeight / 2;
         mark3.style.display = (currentMid === "-0.6" && currentCent === "0.0") ? 'block' : 'none';
     }
 
-    // --- 7. RULE 31: COLLISION LOGIC ---
     if (mEl && cEl) {
         const currentMid = parseFloat(mEl.dataset.middle).toFixed(1);
         const currentCent = parseFloat(cEl.dataset.center).toFixed(1);
@@ -342,14 +274,15 @@ const verticalCenter   = viewHeight / 2;
         checkMark(mark3, "-0.6", "0.0");
     }
 
-    // --- 8. DASHBOARD SYNC ---
+    // --- 8. DASHBOARD SYNC (unchanged) ---
     document.querySelector('[data-heading]').textContent = Math.round(this.heading).toString().padStart(3, '0') + '°';
     document.querySelector('[data-speed]').textContent = this.speed.toFixed(3) + ' kn'; 
 
-    this.updatePosition();
+    // --- 9. UPDATE POSITION IN SVG WORLD ---
+    this.el.setAttribute('transform', `translate(${this.x}, ${this.y})`);
   },
 
-  // #region HELPER METHODS
+  // #region HELPER METHODS (unchanged)
   updateVerticalKnotlines(val) {
     const t = document.getElementById('top'), m = document.getElementById('middle'), b = document.getElementById('bottom');
     if (t && m && b) {
@@ -372,13 +305,6 @@ const verticalCenter   = viewHeight / 2;
       c.dataset.center = centVal; c.textContent = (centVal > 0 ? '+' : '') + centVal.toFixed(1);
       r.dataset.right = righVal; r.textContent = (righVal > 0 ? '+' : '') + righVal.toFixed(1);
     }
-  },
-
-  updatePosition() {
-    if (!this.el) return;
-    this.el.style.left = `${this.x.toFixed(2)}px`;
-    this.el.style.top  = `${this.y.toFixed(2)}px`;
-    this.el.style.transform = 'translate(-50%, -50%)';
   }
   // #endregion
 };

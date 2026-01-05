@@ -1,22 +1,72 @@
-/* ===================================
-   RESPONSIVE – MOBILE-FIRST HELICOPTER VIEW
-   =================================== */
-@media (max-width: 768px) {
-  /* Main grid layout for mobile */
-  .main-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: 50dvh 50dvh;  /* True 50% of visible height each */
-    height: 100dvh;                   /* Full visible viewport */
-    overflow: hidden;                 /* No accidental scroll */
+/* responsive.css – Final mobile portrait layout: perfect visibility + scroll for tuning */
+
+@media (max-width: 768px) and (orientation: portrait) {
+  body {
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
   }
 
-  /* GLOBAL scale for the left panel */
-  .left-panel {
-    transform: scale(0.6);         /* shrink everything */
-    transform-origin: top left;    /* anchor at top-left */
-    width: calc(100% / 0.6);       /* compensate for scaling so it fills grid cell */
-    height: calc(100% / 0.6);
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 50vh 50vh;   
+    height: 100vh;
+    gap: 4px;
+  }
+
+  .left-content {
     overflow: hidden;
   }
 
+  .right-content {
+    overflow-y: auto;                /* Scroll only if tuning sliders push content */
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px 8px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  /* Control groups */
+  .right-1col,
+  .right-3col,
+  .right-4col {
+    display: grid;
+    width: 100%;
+    gap: 8px;
+    padding: 4px 0;
+  }
+
+  .right-1col { grid-template-columns: 1fr; }
+  .right-3col { grid-template-columns: repeat(3, 1fr); }
+
+  /* Sheet and tiller: 4 buttons in ONE row, always visible */
+  #sheetControl,
+  #tillerControl {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  /* Buttons: perfect size — fit 4 in row, easy to tap */
+  #startButton,
+  .control-button {
+    font-size: 15px !important;
+    padding: 10px 4px !important;
+    min-height: 44px !important;
+    border-radius: 8px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
+  /* Tuning sliders: compact but usable */
+  #tuningControlsGroup svg {
+    width: 100%;
+    height: auto;
+    max-width: 80px;
+  }
+
+  .cell {
+    padding: 2px !important;
+  }
 }

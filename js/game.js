@@ -4,7 +4,7 @@ console.log("game.js loaded (module script) — Frame-based edition");
 let playerBoat = null;
 let aiBoat = null;
 let raceTimer = null;
-let environment = null;
+let sea = null;
 
 let lastLoggedHeading = null;
 
@@ -27,13 +27,13 @@ export async function startGame() {
       import('./playerBoat.js'),
       import('./aiBoat.js'),
       import('./raceTimer.js'),
-      import('./environment.js')
+      import('./sea.js')
     ].map(p => p.catch(() => ({}))));
 
     playerBoat     = playerMod.playerBoat     || playerMod.default || {};
     aiBoat         = aiMod.aiBoat             || aiMod.default || {};
     raceTimer      = timerMod.raceTimer       || timerMod.default || {};
-    environment    = envMod.environment       || envMod.default || {};
+    sea    = envMod.sea       || envMod.default || {};
 
     console.log("All game modules loaded successfully!");
 
@@ -48,10 +48,10 @@ export async function startGame() {
       // Reset state
       startSignalFired = false;
       currentLeg = 'upwind';
-      environment.currentLeg = 'upwind'; // sync with environment if needed
-      environment.currentFrameCenter = 0;
-      environment.boatRelativeY = 0;
-      environment.updateKnotLinesDisplay();
+      sea.currentLeg = 'upwind'; // sync with sea if needed
+      sea.currentFrameCenter = 0;
+      sea.boatRelativeY = 0;
+      sea.updateKnotLinesDisplay();
 
       raceTimer.start();
       requestAnimationFrame(mainLoop);
@@ -81,7 +81,7 @@ function mainLoop(timestamp) {
 
   // 5. Debug logging (heading changes)
   if (lastLoggedHeading === null || Math.abs(playerBoat.heading - lastLoggedHeading) > 0.1) {
-    console.log(`Heading: ${playerBoat.heading.toFixed(1)}°`);
+    console.log(`Heading: ${playerBoat.heading.toabsolute(1)}°`);
     lastLoggedHeading = playerBoat.heading;
   }
 
@@ -91,8 +91,8 @@ function mainLoop(timestamp) {
   }
 
   // 7. Check for finish (downwind leg crossing 0.00 downward)
-  if (currentLeg === 'downwind' && environment.currentFrameCenter <= 0 &&
-      environment.boatRelativeY <= 0) {
+  if (currentLeg === 'downwind' && sea.currentFrameCenter <= 0 &&
+      sea.boatRelativeY <= 0) {
     console.log("🏁 FINISHED! Player crossed the finish line!");
     // TODO: trigger finish animation, sound, results screen
     // For now, just stop the loop or show message
@@ -112,13 +112,13 @@ export const game = {
   // Manual leg switch for testing (call from console)
   switchToDownwind() {
     currentLeg = 'downwind';
-    environment.currentLeg = 'downwind';
+    sea.currentLeg = 'downwind';
     console.log("🌀 Switched to DOWNWIND leg — numbers now count down!");
   },
 
   switchToUpwind() {
     currentLeg = 'upwind';
-    environment.currentLeg = 'upwind';
+    sea.currentLeg = 'upwind';
     console.log("⬆️ Switched to UPWIND leg");
   }
 };
