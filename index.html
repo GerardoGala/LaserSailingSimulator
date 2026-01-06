@@ -3,11 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ILCA Simulator</title>
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/grid.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/responsive.css">
+  <title>ILCA Simulator Welcome Page</title>
+  <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
   <!-- WELCOME DIALOG (unchanged) -->
@@ -160,7 +157,9 @@
         </div>
       </div>
       <div style="padding: 20px; background: var(--bg-secondary);">
-        <button class="help-button" onclick="closeWelcome()">OK</button>
+        <button class="help-button" onclick="location.href='game.html'">
+          OK
+        </button>
       </div>
     </div>
 
@@ -179,224 +178,5 @@
       });
     </script>
   </div>
-
-  <!-- MAIN CONTENT -->
-  <div class="main-container" id="mainContainer">
-    <div class="main-grid">
-      <!-- LEFT: Sailing World -->
-      <div class="left-content">
-          <svg id="world" viewBox="0 0 600 500" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-            <!-- Sea background -->
-            <g id="sea-background"></g>
-
-            <!-- Horizontal knot lines (heel indicator) – top center -->
-            <g id="horizontalKnotLines" transform="translate(0, 10)">
-              <rect x="0" y="0" width="600" height="70" fill="#000000" fill-opacity="0.2"/>
-              <g stroke="#ffffff" stroke-width="6" stroke-linecap="butt">
-                <line x1="0"   x2="0"   y1="20" y2="60"/>
-                <line x1="300" x2="300" y1="20" y2="60"/>
-                <line x1="600" x2="600" y1="20" y2="60"/>
-              </g>
-              <text id="left"   data-left="-0.1" x="30"  y="16" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">-0.1</text>
-              <text id="center" data-center="0.0" x="300" y="16" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">0.0</text>
-              <text id="right"  data-right="0.1" x="570" y="16" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">+0.1</text>
-              <g stroke="#ffffff" stroke-width="3" stroke-linecap="butt">
-                <line x1="60"   x2="60"   y1="30" y2="60"/>
-                <line x1="120"  x2="120"  y1="30" y2="60"/>
-                <line x1="180"  x2="180"  y1="30" y2="60"/>
-                <line x1="240"  x2="240"  y1="30" y2="60"/>
-                <line x1="360"  x2="360"  y1="30" y2="60"/>
-                <line x1="420"  x2="420"  y1="30" y2="60"/>
-                <line x1="480"  x2="480"  y1="30" y2="60"/>
-                <line x1="540"  x2="540"  y1="30" y2="60"/>
-              </g>
-            </g>
-
-            <!-- Vertical knot lines (speed indicator) – left side -->
-            <g id="verticalKnotLines" transform="translate(10, 0)">
-              <rect x="0" y="0" width="70" height="500" fill="#000000" fill-opacity="0.2"/>
-              <g stroke="#ffffff" stroke-width="6" stroke-linecap="butt">
-                <line x1="10" x2="60" y1="0"   y2="0"/>
-                <line x1="10" x2="60" y1="250" y2="250"/>
-                <line x1="10" x2="60" y1="500" y2="500"/>
-              </g>
-              <text id="top"    data-top="0.1" x="35" y="24"  font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">+0.1</text>
-              <text id="middle" data-middle="0.0" x="35" y="274" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">0.0</text>
-              <text id="bottom" data-bottom="-0.1" x="35" y="484" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">-0.1</text>
-              <g stroke="#ffffff" stroke-width="3" stroke-linecap="butt">
-                <line x1="15" x2="55" y1="50"  y2="50"/>
-                <line x1="15" x2="55" y1="100" y2="100"/>
-                <line x1="15" x2="55" y1="150" y2="150"/>
-                <line x1="15" x2="55" y1="200" y2="200"/>
-                <line x1="15" x2="55" y1="300" y2="300"/>
-                <line x1="15" x2="55" y1="350" y2="350"/>
-                <line x1="15" x2="55" y1="400" y2="400"/>
-                <line x1="15" x2="55" y1="450" y2="450"/>
-              </g>
-            </g>
-
-            <!-- Start/Finish Line – perfectly centered horizontally, middle vertically -->
-            <g id="startFinishLine" display="none">
-              <line x1="100" x2="500" y1="250" y2="250" stroke="#ffffff" stroke-width="8" stroke-linecap="butt"/>
-              <circle id="startPin" cx="100" cy="250" r="12" fill="yellow"/>
-              <rect id="startRC" x="470" y="220" width="60" height="60" fill="#dc143c"/>
-              <text x="500" y="255" font-size="28" font-weight="bold" fill="white" text-anchor="middle">RC</text>
-            </g>
-
-            <!-- Marks (initial positions – you can move them in JS with transform) -->
-            <g id="mark1" display="none" transform="translate(300,100)">
-              <circle cx="0" cy="0" r="12" fill="yellow" stroke="white" stroke-width="2"/>
-              <text x="0" y="5" font-size="20" font-weight="bold" fill="white" text-anchor="middle">1</text>
-            </g>
-            <g id="mark2" display="none" transform="translate(100,300)">
-              <circle cx="0" cy="0" r="12" fill="yellow" stroke="white" stroke-width="2"/>
-              <text x="0" y="5" font-size="20" font-weight="bold" fill="white" text-anchor="middle">2</text>
-            </g>
-            <g id="mark3" display="none" transform="translate(500,300)">
-              <circle cx="0" cy="0" r="12" fill="yellow" stroke="white" stroke-width="2"/>
-              <text x="0" y="5" font-size="20" font-weight="bold" fill="white" text-anchor="middle">3</text>
-            </g>
-
-            <!-- Player Boat – starts near bottom center -->
-            <g id="playerBoat" transform="translate(300,420)">
-              <g id="boatGroup">
-                <polygon id="hull" points="0,0 -25,100 25,100" fill="yellow" stroke="#111" stroke-width="3"/>
-                <g id="tillerGroup" transform="translate(0,100)">
-                  <rect x="-2" y="0" width="4" height="30" fill="#2e8b57" rx="2"/>
-                </g>
-                <g id="boomPivot">
-                  <rect x="-2" y="0" width="4" height="95" fill="#dc143c"/>
-                  <path id="sailPortTack" d="M -2,0 L -2,80 Q 40,60 0,0 Z" fill="white" opacity="0.85" stroke="#333" stroke-width="0.5"/>
-                  <path id="sailStarboardTack" d="M 2,0 L 2,80 Q -40,60 0,0 Z" fill="white" opacity="0.85" stroke="#333" stroke-width="0.5"/>
-                  <path id="sailLuffing" d="M -2,0 L -2,80 Q 20,40 -20,60 Q 25,70 0,0 Z" fill="white" opacity="0.8" stroke="#333" stroke-width="1.2"/>
-                </g>
-              </g>
-            </g>
-
-            <!-- RC Flag Station – top-left corner -->
-            <g id="rcFlagStation" transform="translate(20,20)">
-              <svg id="overEarly" class="hide" width="54" height="27" viewBox="0 0 180 90">
-                <rect x="0" y="0" width="180" height="90" fill="#ffffff"/>
-                <polygon points="0,0 20,0 180,70 180,90 160,90 0,20" fill="#005eb8"/>
-                <polygon points="180,0 160,0 0,70 0,90 20,90 180,20" fill="#005eb8"/>
-                <rect x="0.5" y="0.5" width="179" height="89" fill="none" stroke="#000" stroke-width="1"/>
-              </svg>
-              <svg id="pennant1" class="hide" x="60" width="72" height="36" viewBox="0 0 360 180">
-                <path fill="#f5f5f5" d="M0,0L360,60V120L0,180ZM135,45A45,45 0 0 0 90,90A45,45 0 1 0 135,45"/>
-                <circle fill="#c8102e" cx="135" cy="90" r="45"/>
-                <path fill="none" stroke="#000" stroke-width="1" d="M0.5,0.5L359.5,60.5V119.5L0.5,179.5Z"/>
-              </svg>
-              <svg id="preparatory" class="hide" x="140" width="36" height="36" viewBox="0 0 180 180">
-                <path fill="#005eb8" d="M0,0H180V180H0ZM57.6,57.6V122.4H122.4V57.6Z"/>
-                <path fill="#f5f5f5" d="M57.6,57.6H122.4V122.4H57.6Z"/>
-                <path fill="none" stroke="#000" stroke-width="1" d="M0.5,0.5H179.5V179.5H0.5Z"/>
-              </svg>
-            </g>
-
-            <!-- Race Timer – top center -->
-            <text id="raceTimerDisplay" x="300" y="120" font-size="32" font-weight="bold" fill="var(--text-accent)" text-anchor="middle">
-              T-3:00
-            </text>
-
-            <!-- Console – bottom area -->
-            <g id="console" transform="translate(300,460)">
-              <rect x="-175" y="-40" width="350" height="80" fill="#000" fill-opacity="0.2" rx="10"/>
-              <text x="-160" y="-15" fill="#fff" font-weight="bold">Wind:</text>
-              <text x="-160" y="15" fill="#fff" font-weight="bold">Heading:</text>
-              <text x="-70" y="-15" fill="#fff" font-weight="bold" data-windCondition></text>
-              <text x="-70" y="15" fill="#fff" font-weight="bold" data-heading>0°</text>
-              <text x="40" y="15" fill="#fff" font-weight="bold">Speed:</text>
-              <text x="100" y="15" fill="#fff" font-weight="bold" data-speed>0.0 kn</text>
-            </g>
-          </svg>
-      </div>
-
-
-      <!-- RIGHT CONTENT -->
-      <div class="right-content">
-        <div id="raceControlsOverlay" class="right-1col">
-          <button id="startButton" style="width: 100%; padding: 16px; font-size: 28px; border-radius: 8px; background: var(--button-bg); color: white; border: none; cursor: pointer; font-weight: bold;">
-            Start!
-          </button>
-        </div>
-
-
-
-        <div id="sheetControl" class="right-4col" data-angle="15">
-          <div class="cell"><button id="btnSheet90" class="control-button" onclick="executeSheet90()">90</button></div>
-          <div class="cell"><button id="btnSheetPlus" class="control-button" onclick="window.adjustSheet(1)">+1°</button></div>
-          <div class="cell"><button id="btnSheetMinus" class="control-button" onclick="window.adjustSheet(-1)">-1°</button></div>
-          <div class="cell"><button id="btnSheet15" class="control-button" onclick="executeSheet15()">15</button></div>
-        </div>
-
-        <div id="tillerControl" class="right-4col" data-angle="0">
-          <div class="cell"><button id="btnTack" class="control-button" onclick="executeTack()">Tack</button></div>
-          <div class="cell"><button id="btnPlus" class="control-button" onclick="window.adjustHeading(1)">+1°</button></div>
-          <div class="cell"><button id="btnMinus" class="control-button" onclick="window.adjustHeading(-1)">-1°</button></div>
-          <div class="cell"><button id="btnGybe" class="control-button" onclick="executeGybe()">Gybe</button></div>
-        </div>
-
-        <div id="tuningControlsGroup" class="right-3col">
-          <div class="cell">
-            <svg id="vangControl" width="60" height="150" viewBox="0 0 60 150">
-              <rect x="0" y="0" width="60" height="20" rx="4" fill="#333" />
-              <text x="30" y="14" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 9px; font-weight: bold;">VANG</text>
-              <g style="cursor: pointer;" onclick="updateControl('vang', 1)">
-                <rect x="5" y="25" width="50" height="40" rx="8" fill="#28a745" />
-                <text x="30" y="52" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 30px; font-weight: bold;">+</text>
-              </g>
-              <rect x="5" y="70" width="50" height="30" rx="4" fill="white" stroke="#ccc" />
-              <text id="vangValue" data-vang="0" x="30" y="92" text-anchor="middle" fill="#333" style="font-family: monospace; font-size: 20px; font-weight: bold;">0</text>
-              <g style="cursor: pointer;" onclick="updateControl('vang', -1)">
-                <rect x="5" y="105" width="50" height="40" rx="8" fill="#dc3545" />
-                <text x="30" y="132" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 35px; font-weight: bold;">-</text>
-              </g>
-            </svg>
-          </div>
-          <div class="cell">
-            <svg id="downhaulControl" width="60" height="150" viewBox="0 0 60 150">
-              <rect x="0" y="0" width="60" height="20" rx="4" fill="#333" />
-              <text x="30" y="14" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 8px; font-weight: bold;">DOWNHAUL</text>
-              <g style="cursor: pointer;" onclick="updateControl('downhaul', 1)">
-                <rect x="5" y="25" width="50" height="40" rx="8" fill="#28a745" />
-                <text x="30" y="52" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 30px; font-weight: bold;">+</text>
-              </g>
-              <rect x="5" y="70" width="50" height="30" rx="4" fill="white" stroke="#ccc" />
-              <text id="downhaulValue" data-downhaul="0" x="30" y="92" text-anchor="middle" fill="#333" style="font-family: monospace; font-size: 20px; font-weight: bold;">0</text>
-              <g style="cursor: pointer;" onclick="updateControl('downhaul', -1)">
-                <rect x="5" y="105" width="50" height="40" rx="8" fill="#dc3545" />
-                <text x="30" y="132" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 35px; font-weight: bold;">-</text>
-              </g>
-            </svg>
-          </div>
-          <div class="cell">
-            <svg id="outhaulControl" width="60" height="150" viewBox="0 0 60 150">
-              <rect x="0" y="0" width="60" height="20" rx="4" fill="#333" />
-              <text x="30" y="14" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 9px; font-weight: bold;">OUTHAUL</text>
-              <g style="cursor: pointer;" onclick="updateControl('outhaul', 1)">
-                <rect x="5" y="25" width="50" height="40" rx="8" fill="#28a745" />
-                <text x="30" y="52" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 30px; font-weight: bold;">+</text>
-              </g>
-              <rect x="5" y="70" width="50" height="30" rx="4" fill="white" stroke="#ccc" />
-              <text id="outhaulValue" data-outhaul="0" x="30" y="92" text-anchor="middle" fill="#333" style="font-family: monospace; font-size: 20px; font-weight: bold;">0</text>
-              <g style="cursor: pointer;" onclick="updateControl('outhaul', -1)">
-                <rect x="5" y="105" width="50" height="40" rx="8" fill="#dc3545" />
-                <text x="30" y="132" text-anchor="middle" fill="white" style="font-family: Arial; font-size: 35px; font-weight: bold;">-</text>
-              </g>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function closeWelcome() {
-      document.getElementById('welcomeOverlay').style.display = 'none';
-      document.getElementById('mainContainer').style.display = 'block';
-    }
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/animejs@latest/dist/bundles/anime.umd.min.js"></script>
-  <script type="module" src="js/main.js"></script>
 </body>
 </html>

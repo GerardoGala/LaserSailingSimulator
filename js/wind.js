@@ -1,58 +1,63 @@
-// js/wind.js — Wind System for Fortaleza Venue
-console.log("wind.js — Fortaleza dynamic wind system active");
+// js/wind.js — Pattern-Based Oscillating Wind (Deterministic)
+console.log("wind.js — pattern-based oscillating wind");
+
+// Base pattern (0 → +5, with natural pauses)
+const BASE_PATTERN = [0, 0, 1, 1, 2, 3, 4, 4, 5, 5];
+const WIND_UPDATE_INTERVAL = 10_000; // 10 seconds
 
 const wind = {
-  baseWindSpeed: 10,
+  favoredWindSpeed: 10,
   currentWindSpeed: 10,
-  trueWindDir: 0,        // Relative shift in degrees (±20°)
+  trueWindDir: 0,
+  phase: 0,
+  patternIndex: 0,
 
   init() {
-    // Randomize initial base wind (8–28 knots, typical Fortaleza trade winds)
-    this.baseWindSpeed = Math.floor(Math.random() * (28 - 8 + 1)) + 8;
-    this.currentWindSpeed = this.baseWindSpeed;
+    // Random favored wind speed (race-appropriate)
+    this.favoredWindSpeed = Math.floor(Math.random() * (14 - 8 + 1)) + 8;
+    this.currentWindSpeed = this.favoredWindSpeed;
     this.trueWindDir = 0;
+    this.phase = 0;
+    this.patternIndex = 0;
 
-    // Update UI immediately
-    this.updateWindUI();
+    // Update UI immediately at T=0
+    this.advanceWind();
 
-    // Natural wind changes every 10 seconds
-    setInterval(() => this.calculateNaturalDynamics(), 10000);
+    // Schedule updates every 10 seconds
+    setInterval(() => this.advanceWind(), WIND_UPDATE_INTERVAL);
   },
 
-  calculateNaturalDynamics() {
-    // Tactical direction oscillations ±20°
-    this.trueWindDir = Math.floor(Math.random() * 41) - 20;
+  advanceWind() {
+    const value = BASE_PATTERN[this.patternIndex];
 
-    // Speed "breath" ±2 knots
-    const fluctuation = Math.floor(Math.random() * 5) - 2;
-    this.currentWindSpeed = this.baseWindSpeed + fluctuation;
+    switch (this.phase) {
+      case 0: this.trueWindDir = value; break;             // 0 → +5
+      case 1: this.trueWindDir = BASE_PATTERN[BASE_PATTERN.length - 1 - this.patternIndex]; break; // +5 → 0
+      case 2: this.trueWindDir = -value; break;            // 0 → -5
+      case 3: this.trueWindDir = -BASE_PATTERN[BASE_PATTERN.length - 1 - this.patternIndex]; break; // -5 → 0
+    }
 
-    // Never drop below 5 knots (keeps race playable)
-    if (this.currentWindSpeed < 5) this.currentWindSpeed = 5;
+    this.patternIndex++;
+    if (this.patternIndex >= BASE_PATTERN.length) {
+      this.patternIndex = 0;
+      this.phase = (this.phase + 1) % 4;
+    }
 
     this.updateWindUI();
   },
 
   updateWindUI() {
-    // Fixed: removed stray "sea" line
-    // Fixed: now selects the correct text element inside the console group
-    const windText = document.querySelector('#console text[data-windCondition]');
+    const speedEl = document.querySelector('#console text[data-windSpeed]');
+    const dirEl   = document.querySelector('#console text[data-windDirection]');
+    if (!speedEl || !dirEl) return;
 
-    if (!windText) {
-      console.warn("Wind display element not found");
-      return;
-    }
-
-    const shiftLabel = this.trueWindDir >= 0 ? `+${this.trueWindDir}` : `${this.trueWindDir}`;
-    windText.textContent = `${this.currentWindSpeed} knots at ${shiftLabel}°`;
+    speedEl.textContent = `${this.currentWindSpeed} kn`;
+    const label = this.trueWindDir >= 0 ? `+${this.trueWindDir}` : `${this.trueWindDir}`;
+    dirEl.textContent = `${label}°`;
   },
 
-  // Helper for other modules to read current wind values
   getCurrentWind() {
-    return {
-      speed: this.currentWindSpeed,
-      directionShift: this.trueWindDir
-    };
+    return { speed: this.currentWindSpeed, directionShift: this.trueWindDir };
   }
 };
 

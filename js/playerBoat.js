@@ -27,7 +27,7 @@ export const playerBoat = {
   y: 350,       // now in world coordinates (0-500)
   logicalX: 300,
   logicalY: 350,
-  heading: 315,   
+  heading: 45,   
   speed: 0,      
   boomAngle: 0,
   tackCommitment: false, 
@@ -90,103 +90,111 @@ export const playerBoat = {
     this.sheetAngle = parseInt(sheetUI?.getAttribute('data-angle') || '15', 10);
     this.tillerAngle = targetTillerAngle;
 
-    // --- 3. PHYSICS (exactly your original code – unchanged) ---
-    const windDisplay = document.querySelector('[data-windCondition]')?.textContent || "10 knots at 0°";
-    const windMatch = windDisplay.match(/(-?\d+)/g); 
-    const currentWindSpeed = windMatch ? parseFloat(windMatch[0]) : 10;
-    const currentWindShift = windMatch ? parseFloat(windMatch[1]) : 0;
 
-    const outhaulElement = document.getElementById('outhaulValue');
-    const outhaulVal = parseFloat(outhaulElement?.getAttribute('data-outhaul')) || 0;
+// --- 3. PHYSICS (updated to use new data attributes) ---
+const speedEl = document.querySelector('[data-windSpeed]');
+const dirEl   = document.querySelector('[data-windDirection]');
 
-    const relativeWind = ((this.heading + 180 - currentWindShift) % 360) - 180; 
-    const onPortTack = relativeWind < 0; 
-    const absRel = Math.abs(relativeWind);
-    const inNoGoZone = absRel < 45;
-    const isLuffing = this.sheetAngle > absRel;
+const currentWindSpeed = speedEl
+    ? parseFloat(speedEl.textContent) || 10
+    : 10;
 
-    if (Math.abs(this.tillerAngle) >= 9 && inNoGoZone && !this.tackCommitment) {
-        this.tackCommitment = true;
-        this.targetRelativeWind = onPortTack ? 45 : -45;
+const currentWindShift = dirEl
+    ? parseFloat(dirEl.textContent.replace('°','').replace('+','')) || 0
+    : 0;
+
+const outhaulElement = document.getElementById('outhaulValue');
+const outhaulVal = parseFloat(outhaulElement?.getAttribute('data-outhaul')) || 0;
+
+const relativeWind = ((this.heading + 180 - currentWindShift) % 360) - 180; 
+const onPortTack = relativeWind < 0; 
+const absRel = Math.abs(relativeWind);
+const inNoGoZone = absRel < 45;
+const isLuffing = this.sheetAngle > absRel;
+
+if (Math.abs(this.tillerAngle) >= 9 && inNoGoZone && !this.tackCommitment) {
+    this.tackCommitment = true;
+    this.targetRelativeWind = onPortTack ? 45 : -45;
+}
+
+const turnDragFactor   = 150;
+const tackPenaltyBase  = 0.25;
+
+let idealOuthaul = 0; 
+if (currentWindSpeed < 8) idealOuthaul = -2.0;
+else if (currentWindSpeed > 18) idealOuthaul = 2.0;
+else if (currentWindSpeed > 15) idealOuthaul = 1.0;
+else if (currentWindSpeed < 10) idealOuthaul = -1.0;
+
+const outhaulError = Math.abs(outhaulVal - idealOuthaul);
+const outhaulEfficiency = Math.max(0.80, 1 - (outhaulError * 0.05));
+
+let potentialSpeed = 0; 
+let idealSheet = 0;
+
+if (this.tackCommitment) {
+    potentialSpeed = currentWindSpeed * tackPenaltyBase; 
+    let angleDiff = this.targetRelativeWind - relativeWind;
+    this.heading += Math.sign(angleDiff) * 2.0;
+    if (Math.abs(this.targetRelativeWind - relativeWind) < 2) this.tackCommitment = false;
+} 
+else if (inNoGoZone || isLuffing) {
+    potentialSpeed = 0;
+    this.boomAngle = -relativeWind; 
+    if (this.sailLuffing) this.sailLuffing.style.display = 'block';
+} 
+else {
+    switch (true) {
+        case (absRel < 44): potentialSpeed = currentWindSpeed * 0.32; idealSheet = 2;  break;
+        case (absRel < 49): potentialSpeed = currentWindSpeed * 0.47; idealSheet = 5;  break;
+        case (absRel < 65): potentialSpeed = currentWindSpeed * 0.58; idealSheet = 15; break;
+        case (absRel < 115): potentialSpeed = currentWindSpeed * 0.85; idealSheet = 45; break;
+        case (absRel < 155): potentialSpeed = currentWindSpeed * 0.70; idealSheet = 75; break;
+        default: potentialSpeed = currentWindSpeed * 0.42; idealSheet = 90; break;
     }
 
-    const turnDragFactor   = 150;
-    const tackPenaltyBase  = 0.25;
+    const sheetError = Math.abs(this.sheetAngle - idealSheet);
+    let sheetEfficiency = Math.max(0.2, 1 - (sheetError / 40)); 
+    potentialSpeed = potentialSpeed * sheetEfficiency * outhaulEfficiency;
+    const turnPenalty = 1 - (Math.abs(this.tillerAngle) / turnDragFactor); 
+    potentialSpeed *= turnPenalty;
+    this.boomAngle = onPortTack ? this.sheetAngle : -this.sheetAngle;
+    if (this.sailLuffing) this.sailLuffing.style.display = 'none';
+}
 
-    let idealOuthaul = 0; 
-    if (currentWindSpeed < 8) idealOuthaul = -2.0;
-    else if (currentWindSpeed > 18) idealOuthaul = 2.0;
-    else if (currentWindSpeed > 15) idealOuthaul = 1.0;
-    else if (currentWindSpeed < 10) idealOuthaul = -1.0;
+const inertiaRate = (potentialSpeed > this.speed) ? 0.015 : 0.04;
+this.speed += (potentialSpeed - this.speed) * inertiaRate;
 
-    const outhaulError = Math.abs(outhaulVal - idealOuthaul);
-    const outhaulEfficiency = Math.max(0.80, 1 - (outhaulError * 0.05));
+// --- SAIL VISIBILITY & SHAPE (unchanged) ---
+const clewY = 90 + (outhaulVal * 2.5); 
+const belly = -30 - (outhaulVal * 5);
+let pathString = "";
 
-    let potentialSpeed = 0; 
-    let idealSheet = 0;
+if (onPortTack) {
+    pathString = `M-2,0 L-2,${clewY} Q ${belly},65 2,0 Z`;
+    this.sailStarboardTack.setAttribute('d', pathString);
+} else {
+    pathString = `M2,0 L2,${clewY} Q ${-belly},65 2,0 Z`;
+    this.sailPortTack.setAttribute('d', pathString);
+}
 
-    if (this.tackCommitment) {
-        potentialSpeed = currentWindSpeed * tackPenaltyBase; 
-        let angleDiff = this.targetRelativeWind - relativeWind;
-        this.heading += Math.sign(angleDiff) * 2.0;
-        if (Math.abs(this.targetRelativeWind - relativeWind) < 2) this.tackCommitment = false;
-    } 
-    else if (inNoGoZone || isLuffing) {
-        potentialSpeed = 0;
-        this.boomAngle = -relativeWind; 
-        if (this.sailLuffing) this.sailLuffing.style.display = 'block';
-    } 
-    else {
-        switch (true) {
-            case (absRel < 44): potentialSpeed = currentWindSpeed * 0.32; idealSheet = 2;  break;
-            case (absRel < 49): potentialSpeed = currentWindSpeed * 0.47; idealSheet = 5;  break;
-            case (absRel < 65): potentialSpeed = currentWindSpeed * 0.58; idealSheet = 15; break;
-            case (absRel < 115): potentialSpeed = currentWindSpeed * 0.85; idealSheet = 45; break;
-            case (absRel < 155): potentialSpeed = currentWindSpeed * 0.70; idealSheet = 75; break;
-            default: potentialSpeed = currentWindSpeed * 0.42; idealSheet = 90; break;
-        }
-
-        const sheetError = Math.abs(this.sheetAngle - idealSheet);
-        let sheetEfficiency = Math.max(0.2, 1 - (sheetError / 40)); 
-        potentialSpeed = potentialSpeed * sheetEfficiency * outhaulEfficiency;
-        const turnPenalty = 1 - (Math.abs(this.tillerAngle) / turnDragFactor); 
-        potentialSpeed *= turnPenalty;
-        this.boomAngle = onPortTack ? this.sheetAngle : -this.sheetAngle;
-        if (this.sailLuffing) this.sailLuffing.style.display = 'none';
-    }
-
-    const inertiaRate = (potentialSpeed > this.speed) ? 0.015 : 0.04;
-    this.speed += (potentialSpeed - this.speed) * inertiaRate;
-
-    // --- SAIL VISIBILITY & SHAPE (unchanged) ---
-    const clewY = 90 + (outhaulVal * 2.5); 
-    const belly = -30 - (outhaulVal * 5);
-    let pathString = "";
-
+if (!this.tackCommitment && !inNoGoZone && !isLuffing) {
     if (onPortTack) {
-        pathString = `M-2,0 L-2,${clewY} Q ${belly},65 2,0 Z`;
-        this.sailStarboardTack.setAttribute('d', pathString);
-    } else {
-        pathString = `M2,0 L2,${clewY} Q ${-belly},65 2,0 Z`;
-        this.sailPortTack.setAttribute('d', pathString);
-    }
-
-    if (!this.tackCommitment && !inNoGoZone && !isLuffing) {
-        if (onPortTack) {
-            this.sailStarboardTack.style.display = 'block';
-            this.sailPortTack.style.display = 'none';
-        } else {
-            this.sailPortTack.style.display = 'block';
-            this.sailStarboardTack.style.display = 'none';
-        }
-        this.sailLuffing.style.display = 'none';
-    } else {
-        this.sailLuffing.style.display = 'block';
+        this.sailStarboardTack.style.display = 'block';
         this.sailPortTack.style.display = 'none';
+    } else {
+        this.sailPortTack.style.display = 'block';
         this.sailStarboardTack.style.display = 'none';
-        pathString = `M 0,0 L 0,${clewY.toFixed(1)} Q 20,40 -20,60 Q 25,70 0,0 Z`;
-        this.sailLuffing.setAttribute('d', pathString);
     }
+    this.sailLuffing.style.display = 'none';
+} else {
+    this.sailLuffing.style.display = 'block';
+    this.sailPortTack.style.display = 'none';
+    this.sailStarboardTack.style.display = 'none';
+    pathString = `M 0,0 L 0,${clewY.toFixed(1)} Q 20,40 -20,60 Q 25,70 0,0 Z`;
+    this.sailLuffing.setAttribute('d', pathString);
+}
+
 
     // --- 4. BOOM & BOAT ROTATION (unchanged) ---
     if (this.boomPivot) {
