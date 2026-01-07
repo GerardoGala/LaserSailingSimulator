@@ -2,13 +2,13 @@
 console.log("sheetControl.js loading (Pro-Tuned with Tape Marks)…");
 
 const MAX_SHEET = 90; // Running / Dead Downwind
-const MIN_SHEET = 15; // The "Secret" Tape Mark for Optimal Upwind
+const MIN_SHEET = 20; // The "Secret" Tape Mark for Optimal Upwind
 
 window.executeSheet90 = function() {
     updateSheetState(MAX_SHEET);
 };
 
-window.executeSheet15 = function() {
+window.executeSheet20 = function() {
     updateSheetState(MIN_SHEET);
 };
 
@@ -16,7 +16,7 @@ window.adjustSheet = function(amount) {
     const el = document.getElementById('sheetControl');
     if (!el) return;
 
-    let current = parseInt(el.getAttribute('data-angle') || '15', 10);
+    let current = parseInt(el.getAttribute('data-angle') || '20', 10);
     let newValue = current + amount;
 
     // Respecting the "Tape Mark" business rule
