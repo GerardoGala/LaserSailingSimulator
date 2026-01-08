@@ -36,6 +36,8 @@ html, body {
    HELP / WELCOME OVERLAY
    =================================== */
 .help-container {
+  height: auto;      /* remove fixed height */
+    max-height: none;  /* no max limit */
   width: 90vw;
   max-width: 600px;
   margin: 0 auto;
@@ -100,7 +102,7 @@ html, body {
 }
 
 .help-content.open {
-  max-height: 2000px;
+  max-height: 3000px;
   padding: 28px 24px;
 }
 
@@ -140,7 +142,7 @@ html, body {
   grid-template-columns: repeat(4, 1fr);
   gap: 1px;
   background: var(--border);
-  margin: 20px 0;
+  margin: 10px 0;
   font-size: 0.95em;
 }
 
