@@ -37,13 +37,18 @@ export const playerBoat = {
   tillerAngle: 0,
   sheetAngle: 15,
 
-  penalty: {
-    active: false,
-    tackDone: false,
-    gybeDone: false,
-    lastTWA: null
+  // Inside playerBoat.js, update the penalty property:
+penalty: {
+  active: false,
+  marksHit: {
+    mark1: false,
+    mark2: false,
+    mark3: false
   },
-
+  tackDone: false,
+  gybeDone: false,
+  lastTWA: null
+},
 
   // #region INITIALIZATION
   async init() {
@@ -95,11 +100,12 @@ export const playerBoat = {
 
     this.heading += targetTillerAngle * 0.04;
     this.heading = (this.heading % 360 + 360) % 360;
+    this.tillerAngle = targetTillerAngle;
 
     // --- 2. MAINSHEET ---
     const sheetUI = document.getElementById('sheetControl');
     this.sheetAngle = parseInt(sheetUI?.getAttribute('data-angle') || '15', 10);
-    this.tillerAngle = targetTillerAngle;
+  
 
     // --- 3. PHYSICS ---
     runPhysics(this);  // <-- call physics module, pass the boat instance
@@ -134,7 +140,7 @@ export const playerBoat = {
     else if (this.x < 0) { this.x = worldWidth; this.updateHorizontalKnotlines(-step); }
 
     // --- 7. MARK VISIBILITY & COLLISION ---
-updateMarksAndCollisions(this);  // <-- handle mark visibility + SAT collision
+    updateMarksAndCollisions(this);  // <-- handle mark visibility + SAT collision
 
     // --- 8. DASHBOARD SYNC ---
     document.querySelector('[data-heading]').textContent = Math.round(this.heading).toString().padStart(3,'0') + '°';

@@ -2,92 +2,85 @@
 // COLLISION MODULE - SAT.js
 // ==============================
 
-// Use the global SAT
 const SAT = window.SAT;
 if (!SAT) throw new Error('SAT.js not loaded. Check script order.');
 
-// ==============================
-// SAT SHAPES (DEFINE ONCE)
-// ==============================
+// 1. DEFINE SHAPES ONCE (Global Scope)
+// Matches your SVG: points="0,0 -25,100 25,100" (Clockwise for SAT)
+const boatPoints = [
+  new SAT.Vector(0, 0),     // Bow (Pivot)
+  new SAT.Vector(25, 100),  // Starboard Stern
+  new SAT.Vector(-25, 100)  // Port Stern
+];
 
-// Player boat polygon (relative to boat center)
-export const boatSAT = new SAT.Polygon(
-  new SAT.Vector(0, 0),
-  [
-    new SAT.Vector(-8, -16),
-    new SAT.Vector(8, -16),
-    new SAT.Vector(6, 16),
-    new SAT.Vector(-6, 16)
-  ]
-);
+const polygonPlayerBoat = new SAT.Polygon(new SAT.Vector(0, 0), boatPoints);
+// Fixed World Position for the buoy
+const circleBuoy = new SAT.Circle(new SAT.Vector(300, 250), 10);
+const satResponse = new SAT.Response();
 
-// Virtual buoy at camera center
-export const buoyRadius = 10;
-export const buoySAT = new SAT.Circle(new SAT.Vector(0, 0), buoyRadius);
-
-// SAT response object (reused each frame)
-export const satResponse = new SAT.Response();
-
-// ==============================
-// UPDATE MARK VISIBILITY & COLLISIONS
-// ==============================
+/**
+ * Handles Mark Visibility, Scoring Penalties (Rule 44.3),
+ * and collision detection without affecting boat movement.
+ */
 export function updateMarksAndCollisions(playerBoat) {
-  // Get the “knotline” elements
+  const markEl = document.getElementById('mark');
   const mEl = document.getElementById('middle');
   const cEl = document.getElementById('center');
-  const startFinishLine = document.getElementById('startFinishLine');
-  const mark1 = document.getElementById('mark1');
-  const mark2 = document.getElementById('mark2');
-  const mark3 = document.getElementById('mark3');
 
-  if (!mEl || !cEl || !mark1) return;
+  if (!markEl || !mEl || !cEl) return;
 
-  // --- Current virtual location (from knot lines)
-  const currentMid = parseFloat(mEl.dataset.middle).toFixed(1);
-  const currentCent = parseFloat(cEl.dataset.center).toFixed(1);
+  // --- 2. KNOTLINE LOGIC (World Position) ---
+  const currentMiddle = parseFloat(mEl.dataset.middle).toFixed(1);
+  const currentCenter = parseFloat(cEl.dataset.center).toFixed(1);
 
-  // --- Determine which mark is visible
-  const atStart = (currentMid === "0.0" && currentCent === "0.0");
-  const atM1 = (currentMid === "0.6" && currentCent === "0.0");
-  const atM2 = (currentMid === "0.0" && currentCent === "-0.6");
-  const atM3 = (currentMid === "-0.6" && currentCent === "0.0");
+  let markNumber = 0;
+  if (currentMiddle === "0.2" && currentCenter === "0.0") markNumber = 1;
+  else if (currentMiddle === "0.0" && currentCenter === "-0.6") markNumber = 2;
+  else if (currentMiddle === "-0.6" && currentCenter === "0.0") markNumber = 3;
 
-  startFinishLine.style.display = atStart ? 'block' : 'none';
-  mark1.style.display = atM1 ? 'block' : 'none';
-  mark2.style.display = atM2 ? 'block' : 'none';
-  mark3.style.display = atM3 ? 'block' : 'none';
+  // If no buoy is in this area, hide and exit
+  if (markNumber === 0) {
+    markEl.style.display = 'none';
+    return;
+  }
 
-  // --- Only check SAT collision if a mark is visible
-  if (atM1 || atM2 || atM3) {
-    // Update boat SAT position and rotation
-    boatSAT.pos.x = playerBoat.x;
-    boatSAT.pos.y = playerBoat.y;
-    boatSAT.setAngle(playerBoat.heading * Math.PI / 180);
+  // --- 3. SYNC SAT MATH ---
+  polygonPlayerBoat.pos.x = playerBoat.x;
+  polygonPlayerBoat.pos.y = playerBoat.y;
+  polygonPlayerBoat.setAngle((playerBoat.heading * Math.PI) / 180);
 
-    // Virtual buoy always at camera center
-    const CAMERA_CENTER_X = 300;
-    const CAMERA_CENTER_Y = 350;
-    buoySAT.pos.x = CAMERA_CENTER_X;
-    buoySAT.pos.y = CAMERA_CENTER_Y;
+  // --- 4. COLLISION TEST ---
+  satResponse.clear();
+  const isTouching = SAT.testPolygonCircle(polygonPlayerBoat, circleBuoy, satResponse);
+  
+  const markKey = `mark${markNumber}`;
 
-    satResponse.clear();
+  // If currently touching and hasn't been hit before, record it
+  if (isTouching && playerBoat.penalty && !playerBoat.penalty.marksHit[markKey]) {
+    playerBoat.penalty.marksHit[markKey] = true;
+    playerBoat.penalty.active = true;
+    console.log(`RULE 31: Mark ${markNumber} touched! Yellow Flag (Scoring Penalty) applied.`);
+  }
 
-    if (SAT.testPolygonCircle(boatSAT, buoySAT, satResponse)) {
-      console.log('🎯 Mark collision detected at camera center!');
+  // --- 5. VISUAL UPDATES ---
+  markEl.style.display = 'block';
+  const circleEl = markEl.querySelector('circle');
+  const textEl = markEl.querySelector('text');
 
-      // --- Apply penalty ---
-      playerBoat.penalty = playerBoat.penalty || {};
-      playerBoat.penalty.active = true;       // penalty is now owed
-      playerBoat.penalty.tackDone = false;    // reset tack/gybe counters
-      playerBoat.penalty.gybeDone = false;
-      playerBoat.penalty.lastTWA = playerBoat.heading;
-
-      // --- Visual cue: mark turns red to indicate violation ---
-if (atM1) {
-    mark1.setAttribute('fill', 'red');
-}
-      if (atM2) mark2.setAttribute('fill', 'red');
-      if (atM3) mark3.setAttribute('fill', 'red');
+  if (textEl) textEl.textContent = markNumber;
+  
+  if (circleEl) {
+    // PERSISTENCE: If the boat has EVER hit this specific mark, it stays red
+    if (playerBoat.penalty && playerBoat.penalty.marksHit[markKey]) {
+      circleEl.setAttribute('fill', 'red');
+    } else {
+      circleEl.setAttribute('fill', 'yellow');
     }
+  }
+
+  // --- 6. YELLOW FLAG VISUAL (RULE 44.3) ---
+  if (playerBoat.penalty && playerBoat.penalty.active) {
+    const hull = document.getElementById('hull');
+    if (hull) hull.setAttribute('stroke', '#FFD700'); // Gold stroke for Yellow Flag
   }
 }
