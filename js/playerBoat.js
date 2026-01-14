@@ -1,9 +1,11 @@
 // js/playerBoat.js
 console.log("playerBoat.js loading…");
 
-import { WORLD } from './world.js';
 import { runPhysics } from './boatPhysics.js';  // <-- import physics module
+import { updateScreen } from './screenWrapping.js';
 import { updateMarksAndCollisions } from './collision.js';
+import { updateRaceStatus } from './raceManager.js';
+import { raceTimer } from './raceTimer.js';
 
 // #region ANIMATION ENGINE SETUP (unchanged)
 const animePromise = new Promise((resolve, reject) => {
@@ -28,6 +30,7 @@ export const playerBoat = {
 
   x: 300,
   y: 350,
+  lastY: 350,
   logicalX: 300,
   logicalY: 350,
   heading: 45,
@@ -39,16 +42,25 @@ export const playerBoat = {
 
   // Inside playerBoat.js, update the penalty property:
 penalty: {
-  active: false,
-  marksHit: {
-    mark1: false,
-    mark2: false,
-    mark3: false
+    active: false,      // General flag: true if any mark has been hit
+    
+    // Rule 31: Touching a Mark (handled by collision.js)
+    marksHit: {
+      mark1: false,
+      mark2: false,
+      mark3: false,
+      finishMark: false
+    },
+    
+    // The "String Test": Ensuring correct course sailed (handled by raceManager.js)
+    roundedMarks: {
+      mark1: false,
+      mark2: false,
+      mark3: false
+    },
+
+    ocs: false          // Over-Early flag (handled by raceTimer.js)
   },
-  tackDone: false,
-  gybeDone: false,
-  lastTWA: null
-},
 
   // #region INITIALIZATION
   async init() {
@@ -123,30 +135,28 @@ penalty: {
     const dx = Math.sin(this.heading * Math.PI / 180) * (pixelsPerSecond / 60);
     const dy = -Math.cos(this.heading * Math.PI / 180) * (pixelsPerSecond / 60);
 
+    this.lastY = this.y
     this.x += dx;
     this.y += dy;
     this.logicalX += dx;
     this.logicalY += dy;
 
+
     // --- 6. SCREEN WRAPPING ---
-    const step = 0.2;
-    const worldWidth = 600;
-    const worldHeight = 500;
-
-    if (this.y < 0) { this.y = worldHeight; this.updateVerticalKnotlines(step); }
-    else if (this.y > worldHeight) { this.y = 0; this.updateVerticalKnotlines(-step); }
-
-    if (this.x > worldWidth) { this.x = 0; this.updateHorizontalKnotlines(step); }
-    else if (this.x < 0) { this.x = worldWidth; this.updateHorizontalKnotlines(-step); }
+    updateScreen(this);
 
     // --- 7. MARK VISIBILITY & COLLISION ---
     updateMarksAndCollisions(this);  // <-- handle mark visibility + SAT collision
 
-    // --- 8. DASHBOARD SYNC ---
+    // --- 8. NEW: RACE STATUS & FINISH LOGIC ---
+    // This is the "missing link"! We pass 'this' (the boat) and the timer.
+    updateRaceStatus(this, raceTimer);
+
+    // --- 9. DASHBOARD SYNC ---
     document.querySelector('[data-heading]').textContent = Math.round(this.heading).toString().padStart(3,'0') + '°';
     document.querySelector('[data-speed]').textContent = this.speed.toFixed(3) + ' kn';
 
-    // --- 9. UPDATE POSITION IN SVG WORLD ---
+    // --- 10. UPDATE POSITION IN SVG WORLD ---
     this.el.setAttribute('transform', `translate(${this.x}, ${this.y})`);
   },
 

@@ -139,7 +139,6 @@
         </svg>
       </div>
 
-
       <!-- RIGHT CONTENT -->
       <div class="right-content">
         <div id="raceControlsOverlay" class="right-1col">
@@ -148,63 +147,57 @@
           </button>
         </div>
 
+        <div id="sheetControl" class="right-4col cell" data-angle="15" 
+            style="background: rgba(0,0,0,0.1); padding: 6px; border-radius: 8px; text-align: center;">
 
+          <!-- Group label spans all columns -->
+          <div style="font-weight: bold; color: white; margin-top: 8px; grid-column: 1 / -1;">
+            SHEET CONTROL
+          </div>
 
-<div id="sheetControl" class="right-4col cell" data-angle="15" 
-     style="background: rgba(0,0,0,0.1); padding: 6px; border-radius: 8px; text-align: center;">
+          <!-- Buttons -->
+          <button id="btnSheet90" class="control-button" onclick="executeSheet90()">90</button>
+          
+          <button id="btnSheetPlus" class="control-button" 
+                  onclick="window.adjustSheet(1)" 
+                  style="background: white; color: black; font-weight: bold;">
+            +1°
+          </button>
+          
+          <button id="btnSheetMinus" class="control-button" 
+                  onclick="window.adjustSheet(-1)" 
+                  style="background: white; color: black; font-weight: bold;">
+            -1°
+          </button>
+          
+          <button id="btnSheet20" class="control-button" onclick="executeSheet20()">20</button>
+        </div>
 
-  <!-- Group label spans all columns -->
-  <div style="font-weight: bold; color: white; margin-top: 8px; grid-column: 1 / -1;">
-    SHEET CONTROL
-  </div>
+        <div id="tillerControl" class="right-4col cell" data-angle="0" 
+            style="background: rgba(0,0,0,0.1); padding: 6px; border-radius: 8px; text-align: center;">
 
-  <!-- Buttons -->
-  <button id="btnSheet90" class="control-button" onclick="executeSheet90()">90</button>
-  
-  <button id="btnSheetPlus" class="control-button" 
-          onclick="window.adjustSheet(1)" 
-          style="background: white; color: black; font-weight: bold;">
-    +1°
-  </button>
-  
-  <button id="btnSheetMinus" class="control-button" 
-          onclick="window.adjustSheet(-1)" 
-          style="background: white; color: black; font-weight: bold;">
-    -1°
-  </button>
-  
-  <button id="btnSheet20" class="control-button" onclick="executeSheet20()">20</button>
-</div>
+          <!-- Group label spans all columns -->
+          <div style="font-weight: bold; color: white; margin-top: 8px; grid-column: 1 / -1;">
+            TILLER CONTROL
+          </div>
 
-
-
-<div id="tillerControl" class="right-4col cell" data-angle="0" 
-     style="background: rgba(0,0,0,0.1); padding: 6px; border-radius: 8px; text-align: center;">
-
-  <!-- Group label spans all columns -->
-  <div style="font-weight: bold; color: white; margin-top: 8px; grid-column: 1 / -1;">
-    TILLER CONTROL
-  </div>
-
-  <!-- Buttons -->
-  <button id="btnTack" class="control-button" onclick="executeTack()">Tack</button>
-  
-  <button id="btnPlus" class="control-button" 
-          onclick="window.adjustHeading(1)" 
-          style="background: white; color: black; font-weight: bold;">
-    +1°
-  </button>
-  
-  <button id="btnMinus" class="control-button" 
-          onclick="window.adjustHeading(-1)" 
-          style="background: white; color: black; font-weight: bold;">
-    -1°
-  </button>
-  
-  <button id="btnGybe" class="control-button" onclick="executeGybe()">Gybe</button>
-</div>
-
-
+          <!-- Buttons -->
+          <button id="btnTack" class="control-button" onclick="executeTack()">Tack</button>
+          
+          <button id="btnPlus" class="control-button" 
+                  onclick="window.adjustHeading(1)" 
+                  style="background: white; color: black; font-weight: bold;">
+            +1°
+          </button>
+          
+          <button id="btnMinus" class="control-button" 
+                  onclick="window.adjustHeading(-1)" 
+                  style="background: white; color: black; font-weight: bold;">
+            -1°
+          </button>
+          
+          <button id="btnGybe" class="control-button" onclick="executeGybe()">Gybe</button>
+        </div>
 
         <div id="tuningControlsGroup" class="right-3col">
           <div class="cell">
@@ -260,6 +253,37 @@
     </div>
   </div>
 
+  <div id="finishModal" class="modal-overlay">
+    <div class="modal-content">
+      <h1 id="modalTitle">🏁 Race Results</h1>
+      <div class="score-summary">
+        <p>Your Final Time: <span id="playerFinalTime">0.00</span>s</p>
+      </div>
+      
+      <h3>🏆 Top 10 Sailors</h3>
+      <table id="leaderboardTable">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Sailor</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody">
+          </tbody>
+      </table>
+
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button id="playAgainBtn" class="modal-button" onclick="location.reload()">Sail Again!</button>
+        
+        <button id="shareBtn" class="modal-button" style="background: #007bff;">
+          Share Score ⛵
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/animejs@latest/dist/bundles/anime.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/animejs@latest/dist/bundles/anime.umd.min.js"></script>
   <script src="js/SAT.js"></script>
   <script type="module" src="js/main.js"></script>
