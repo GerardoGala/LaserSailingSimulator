@@ -86,56 +86,84 @@
         <a href="game.html" class="btn btn-play" style="background: #28a745;">New Race</a>
     </div>
 
-    <script type="module">
-        // Import the same logic you used in your game
-        import { getTopTen } from '/js/db.js';
+<script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+        apiKey: "AIzaSyC_ayepAzJV_vfV5Qh8m52tGnn1Iw7CRnY",
+        authDomain: "laser-sailing-simulator.firebaseapp.com",
+        projectId: "laser-sailing-simulator",
+        storageBucket: "laser-sailing-simulator.firebasestorage.app",
+        messagingSenderId: "45397375888",
+        appId: "1:45397375888:web:1ca8d7688170787624d115"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         async function initBoard() {
             const tableBody = document.getElementById('leaderboardBody');
             
             try {
-                const scores = await getTopTen();
+                // 1. Reference the collection
+                const leaderboardRef = collection(db, "leaderboard");
+                
+                // 2. Simple query first to ensure we see data
+                // If this works, you can re-add: orderBy("finalTime", "asc"), limit(10)
+                const q = query(leaderboardRef, orderBy("finalTime", "asc"), limit(10));
+                
+                const querySnapshot = await getDocs(q);
                 tableBody.innerHTML = ''; 
 
-                if (scores.length === 0) {
+                if (querySnapshot.empty) {
                     tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No records yet! Be the first to sail.</td></tr>';
                     return;
                 }
 
-                scores.forEach((entry, index) => {
-                    // Medal emojis for top 3
-                    let rankDisplay = `#${index + 1}`;
-                    if(index === 0) rankDisplay = '🏆';
-                    if(index === 1) rankDisplay = '🥈';
-                    if(index === 2) rankDisplay = '🥉';
+                let rank = 1;
+                querySnapshot.forEach((doc) => {
+                    const entry = doc.data();
+                    
+                    // Handle potential different field names or missing data
+                    const sailor = entry.sailorName || "Anonymous Skipper";
+                    const time = entry.finalTime ? Number(entry.finalTime).toFixed(2) : "N/A";
+
+                    let rankDisplay = `#${rank}`;
+                    if(rank === 1) rankDisplay = '🏆';
+                    if(rank === 2) rankDisplay = '🥈';
+                    if(rank === 3) rankDisplay = '🥉';
 
                     const row = `
                         <tr>
                             <td class="rank">${rankDisplay}</td>
-                            <td class="sailor-name">${entry.sailorName}</td>
-                            <td class="time">${entry.finalTime.toFixed(2)}s</td>
+                            <td class="sailor-name">${sailor}</td>
+                            <td class="time">${time}s</td>
                         </tr>
                     `;
                     tableBody.innerHTML += row;
+                    rank++;
                 });
+
             } catch (err) {
                 console.error("Board error:", err);
-                tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Error loading leaderboard.</td></tr>';
+                // This will show the EXACT error message on the screen if it fails
+                tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:red;">
+                    Error: ${err.code || err.message}
+                </td></tr>`;
             }
-
-            const shareBoardBtn = document.getElementById('shareBoardBtn');
-            shareBoardBtn.onclick = async () => {
-                try {
-                    await navigator.share({
-                        title: 'Laser Sailing Hall of Fame',
-                        text: 'Check out the top times on the Laser Sailing Simulator!',
-                        url: "https://gerardogala.github.io/LaserSailingSimulator/scoreBoard.html"
-                    });
-                } catch (err) {
-                    console.log('Share failed or cancelled');
-                }
-            };
         }
+
+        // Share functionality stays outside the async loop for reliability
+        document.getElementById('shareBoardBtn').onclick = async () => {
+            try {
+                await navigator.share({
+                    title: 'Laser Sailing Hall of Fame',
+                    text: 'Check out the top times on the Laser Sailing Simulator! ⛵',
+                    url: "https://gerardogala.github.io/LaserSailingSimulator/scoreBoard.html"
+                });
+            } catch (err) { console.log('Share ignored'); }
+        };
 
         initBoard();
     </script>
