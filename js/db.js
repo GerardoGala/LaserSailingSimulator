@@ -43,16 +43,13 @@ export async function saveRaceResult(playerName, timeInSeconds) {
  * Fetches the top 10 fastest sailors.
  */
 export async function getTopTen() {
+    console.log("Attempting to fetch scores...");
     try {
-        const q = query(
-            collection(db, "leaderboard"), 
-            orderBy("finalTime", "asc"), 
-            limit(10)
-        );
+        const q = query(collection(db, "leaderboard"), orderBy("finalTime", "asc"), limit(10));
         const querySnapshot = await getDocs(q);
         return querySnapshot.docs.map(doc => doc.data());
     } catch (e) {
-        console.error("❌ Error fetching leaderboard: ", e);
-        return [];
+        console.error("Firestore Error: ", e);
+        throw e; // Send the error to the scoreboard page to alert()
     }
 }
